@@ -1,0 +1,35 @@
+{
+  "name": "typscript--learn",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "dev": "tsx watch src/app.ts",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "module",
+  "devDependencies": {
+    "@types/inquirer": "^9.0.9",
+    "@types/node": "^22.18.11",
+    "@types/pdf-parse": "^1.1.5",
+    "ts-node": "^10.9.2",
+    "tsx": "^4.19.4",
+    "typescript": "^5.9.3"
+  },
+  "dependencies": {
+    "@types/express": "^5.0.2",
+    "chalk": "^5.6.2",
+    "dotenv": "^17.2.3",
+    "express": "^5.1.0",
+    "inquirer": "^12.10.0",
+    "mongodb": "^6.20.0",
+    "mongoose": "^8.19.1",
+    "nodemon": "^3.1.10",
+    "openai": "^6.5.0",
+    "pdf-parse": "^2.4.3",
+    "ts-node-dev": "^2.0.0"
+  }
+}

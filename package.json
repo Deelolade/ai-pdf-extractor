@@ -35,7 +35,7 @@
     "nodemailer": "^7.0.9",
     "nodemon": "^3.1.10",
     "openai": "^6.5.0",
-    "pdf-parse": "^2.4.3",
+    "pdf-parse": "^2.4.5",
     "ts-node-dev": "^2.0.0"
   }
 }

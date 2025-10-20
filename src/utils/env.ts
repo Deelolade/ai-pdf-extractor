@@ -17,3 +17,8 @@ export const EMAIL_PASS = process.env.EMAIL_PASS as string;
 if(!EMAIL_PASS){
     throw new Error ("EMAIL_USER is not defined in .env")
 }
+
+export const apiKey = process.env.API_KEY as string;
+if(!apiKey){
+    throw new Error ("apiKey is not defined in .env")
+}

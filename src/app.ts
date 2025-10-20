@@ -2,9 +2,11 @@ import express, {Response, Request} from "express";
 import { connectDb } from "./utils/db";
 import chalk from "chalk";
 import { userRouter } from "./routes/user.routes";
+import { globalErrorHandler } from "./middleware/errorMiddleware";
 
 const app = express();
 app.use(express.json())
+app.use(globalErrorHandler)
 const PORT = 5000;
 connectDb()
 

@@ -10,7 +10,7 @@
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "type": "module",
+  "type": "commonjs",
   "devDependencies": {
     "@types/bcryptjs": "^2.4.6",
     "@types/inquirer": "^9.0.9",

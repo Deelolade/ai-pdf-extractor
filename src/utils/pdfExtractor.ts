@@ -1,31 +1,22 @@
-import fs from "fs"
-import path from "path";
+import axios from "axios";
+// import pdfParse from "pdf-parse";
+// import * as pdfParse from "pdf-parse";
+const pdfParse = require("pdf-parse");
 
-const pdfParse = require("pdf-parse").default;
-export const extractTextFromPdf = async (
-      relativePath: string,
-        maxPages: number = 5
+export const extractTextFromPdf = async ( 
+    fileUrl: string,
+    maxPages: number = 5
 ): Promise<string> => {
     try {
-        // const parser = new PDFParse({ url: filepath });
-        // const result = await parser.getText();
-        // // to extract text from page 3 only:
-        // // const result = await parser.getText({ partial: [3] });
-        // await parser.destroy();
-        // console.log(result.text);
+         console.log("Downloading file from URL...");
+    const response = await axios.get(fileUrl, {
+      responseType: "arraybuffer",
+    });
 
-
-
-        const filepath = path.resolve(__dirname, relativePath)
-        console.log("Reading file to buffer...");
-
-        const dataBuffer = fs.readFileSync(filepath);
-        console.log("Parsing PDF...");
-
-        const pdfData = await pdfParse(dataBuffer, { max: maxPages })
-        console.log("Parsing done.");
-
-        return pdfData.text;
+    const dataBuffer = Buffer.from(response.data);
+    console.log("Parsing PDF...");
+    const pdfData = await pdfParse(dataBuffer, { max: maxPages });
+    return pdfData.text;
     } catch (error) {
         console.log("Error reading pdf:", error)
         throw new Error("Failed to extract text from pdf" + (error as Error).message)

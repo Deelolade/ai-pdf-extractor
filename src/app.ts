@@ -1,18 +1,18 @@
 import express, {Response, Request} from "express";
 import { connectDb } from "./utils/db";
 import chalk from "chalk";
-import { userRouter } from "./routes/user.routes";
+import { userRouter } from "./routes/auth.routes";
 import { globalErrorHandler } from "./middleware/errorMiddleware";
-import { extractTextFromPdf } from "./utils/pdfExtractor";
-import { PDFParse } from 'pdf-parse';
+import { uploadRouter } from "./routes/upload.route";
 
 const app = express();
 app.use(express.json())
 app.use(globalErrorHandler)
 const PORT = 5000;
-// connectDb()
+connectDb()
 
-app.use('/api/user',userRouter)
+app.use('/api/auth',userRouter)
+app.use('/api/upload',uploadRouter)
 app.get('/', async(req:Request, res: Response): Promise<void> =>{
   try {
     res.send(`welcome to the best pdf extractor !!`)

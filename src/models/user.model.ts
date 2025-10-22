@@ -4,8 +4,9 @@ interface UserDocument extends Document{
     name: string,
     email: string,
     password: string
-    passwordResetTokenHash:string
-    passwordResetExpiresAt:Date
+    passwordResetTokenHash?:string
+    passwordResetExpiresAt?:Date
+    passwordChangedAt :Date
 }
 const UserSchema = new Schema<UserDocument>({
     name:{
@@ -26,9 +27,11 @@ const UserSchema = new Schema<UserDocument>({
     },
     passwordResetExpiresAt:{
         type:Date,
-
+        default: undefined,
+    },
+    passwordChangedAt:{
+        type:Date,
     }
-
 }, {timestamps:true})
 
 export const User = mongoose.model<UserDocument>('user',UserSchema)

@@ -142,20 +142,20 @@ export const forgetPassword = async (
             });
             return;
         }
-       
+
         const rawToken = crypto.randomBytes(32).toString("hex");
 
         const hashedToken = crypto
-        .createHash("sha256")
-        .update(rawToken)
-        .digest("hex")
-        
+            .createHash("sha256")
+            .update(rawToken)
+            .digest("hex")
+
         existingUser.passwordResetTokenHash = hashedToken;
-        existingUser.passwordResetExpiresAt = new Date(Date.now()+ 60 * 60 * 100)
+        existingUser.passwordResetExpiresAt = new Date(Date.now() + 60 * 60 * 100)
 
         await existingUser.save();
 
-            const resetPasswordLink = `https://${FRONTEND_URL}/reset-password?token=${rawToken}`;
+        const resetPasswordLink = `${FRONTEND_URL}/reset-password?token=${rawToken}`;
         await sendEmail(
             existingUser.email,
             "Attempt to change password on your account 🔐",
@@ -175,11 +175,60 @@ export const forgetPassword = async (
   `
         );
         res.status(200).json({
-      success: true,
-      message: "If this email exists, a reset link has been sent.",
-    });
+            success: true,
+            message: "If this email exists, a reset link has been sent.",
+        });
     } catch (error) {
         console.log(error);
         next(errorHandler(500, "Error occured while changing user password"));
     }
 };
+export const resetPassword = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+): Promise<void> => {
+    try {
+        const { token, password } = req.body;
+        if (!token || !password) {
+            return next(errorHandler(400, "Token and new password are required"));
+        }
+        const tokenHash = crypto.createHash("sha256").update(token).digest("hex");
+        const existingUser = await User.findOne({
+            passwordResetTokenHash: tokenHash,
+            passwordResetExpiresAt: { $gt: new Date() }
+        })
+
+        if (!existingUser) {
+            return next(errorHandler(400, "Invalid or expired Token !!"))
+        }
+
+        const hashedPassword = await bcrypt.hash(password, 10);
+        existingUser.password = hashedPassword;
+        existingUser.passwordResetExpiresAt = undefined;
+        existingUser.passwordResetTokenHash = undefined;
+        existingUser.passwordChangedAt = new Date();
+        await existingUser.save();
+        await sendEmail(
+  existingUser.email,
+  "Your password was changed ✅",
+  `
+  <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+    <h2>Hello ${existingUser.name || "there"},</h2>
+    <p>This is a confirmation that the password for your <strong>AI PDF Extractor</strong> account was successfully changed.</p>
+    <p>If you made this change, no further action is needed.</p>
+    <p>If you did <strong>not</strong> change your password, please <a href="" style="color: #007bff; text-decoration: none;">secure your account</a> immediately by resetting your password and reviewing your account activity.</p>
+    <br/>
+    <p>Stay safe,</p>
+    <p>— The AI PDF Extractor Security Team</p>
+    <hr/>
+    <small style="color:#777;">This is an automated email. Please do not reply.</small>
+  </div>
+  `
+);
+        res.status(200).json({ message: "Password reset successful!" });
+    } catch (error) {
+        console.log(error);
+        next(errorHandler(500, "Error occured while changing user password"));
+    }
+}

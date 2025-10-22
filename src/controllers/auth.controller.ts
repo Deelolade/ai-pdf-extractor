@@ -189,8 +189,8 @@ export const resetPassword = async (
     next: NextFunction
 ): Promise<void> => {
     try {
-        const { token, password } = req.body;
-        if (!token || !password) {
+        const { token, newPassword } = req.body;
+        if (!token || !newPassword) {
             return next(errorHandler(400, "Token and new password are required"));
         }
         const tokenHash = crypto.createHash("sha256").update(token).digest("hex");
@@ -203,29 +203,29 @@ export const resetPassword = async (
             return next(errorHandler(400, "This password reset link is invalid or has expired."))
         }
 
-        if (password) {
-            if (!password) {
+        if (newPassword) {
+            if (!newPassword) {
                 return next(errorHandler(400, "Password is required."));
             }
-            if (password.length < 8) {
+            if (newPassword.length < 8) {
                 return next(errorHandler(400, "Password must be at least 8 characters long."));
             }
-            if (!/[a-z]/.test(password)) {
+            if (!/[a-z]/.test(newPassword)) {
                 return next(errorHandler(400, "Password must contain at least one lowercase letter."));
             }
-            if (!/[A-Z]/.test(password)) {
+            if (!/[A-Z]/.test(newPassword)) {
                 return next(errorHandler(400, "Password must contain at least one uppercase letter."));
             }
-            if (!/\d/.test(password)) {
+            if (!/\d/.test(newPassword)) {
                 return next(errorHandler(400, "Password must include a number."));
             }
-            if (!/[\W_]/.test(password)) {
+            if (!/[\W_]/.test(newPassword)) {
                 return next(errorHandler(400, "Password must include a special character."));
             }
         }
         if (existingUser.passwordHistory) {
             for (const p of existingUser.passwordHistory) {
-                const isSame = await bcrypt.compare(password, p.hash);
+                const isSame = await bcrypt.compare(newPassword, p.hash);
                 if (isSame) {
                     return next(errorHandler(400, "You can not reuse a recent password."));
                 }
@@ -242,7 +242,7 @@ export const resetPassword = async (
         existingUser.passwordHistory = existingUser.passwordHistory.slice(0, 5);
 
 
-        const hashedPassword = await bcrypt.hash(password, 10);
+        const hashedPassword = await bcrypt.hash(newPassword, 10);
         existingUser.password = hashedPassword;
         existingUser.passwordResetExpiresAt = undefined;
         existingUser.passwordResetTokenHash = undefined;

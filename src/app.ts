@@ -4,12 +4,14 @@ import chalk from "chalk";
 import { userRouter } from "./routes/auth.routes";
 import { globalErrorHandler } from "./middleware/errorMiddleware";
 import { uploadRouter } from "./routes/upload.route";
+import { setupSwagger } from "./utils/swagger";
 
 const app = express();
 app.use(express.json())
 app.use(globalErrorHandler)
 const PORT = 5000;
 connectDb()
+setupSwagger(app);
 
 app.use('/api/auth',userRouter)
 app.use('/api/upload',uploadRouter)

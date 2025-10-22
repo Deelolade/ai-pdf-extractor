@@ -203,8 +203,33 @@ export const resetPassword = async (
             return next(errorHandler(400, "This password reset link is invalid or has expired."))
         }
 
-        if (existingUser.passwordHistory?.some(p => await bcrypt.compare(password, p.hash))) {
-            return next(errorHandler(400, "You can not reuse a recent password."))
+        if (password) {
+            if (!password) {
+                return next(errorHandler(400, "Password is required."));
+            }
+            if (password.length < 8) {
+                return next(errorHandler(400, "Password must be at least 8 characters long."));
+            }
+            if (!/[a-z]/.test(password)) {
+                return next(errorHandler(400, "Password must contain at least one lowercase letter."));
+            }
+            if (!/[A-Z]/.test(password)) {
+                return next(errorHandler(400, "Password must contain at least one uppercase letter."));
+            }
+            if (!/\d/.test(password)) {
+                return next(errorHandler(400, "Password must include a number."));
+            }
+            if (!/[\W_]/.test(password)) {
+                return next(errorHandler(400, "Password must include a special character."));
+            }
+        }
+        if (existingUser.passwordHistory) {
+            for (const p of existingUser.passwordHistory) {
+                const isSame = await bcrypt.compare(password, p.hash);
+                if (isSame) {
+                    return next(errorHandler(400, "You can not reuse a recent password."));
+                }
+            }
         }
         if (!existingUser.passwordHistory) {
             existingUser.passwordHistory = [];
@@ -224,11 +249,11 @@ export const resetPassword = async (
         existingUser.passwordChangedAt = new Date();
 
         await Promise.all([
-            existingUser.save()
-        sendEmail(
-            existingUser.email,
-            "Your password was changed ✅",
-            `
+            existingUser.save(),
+            sendEmail(
+                existingUser.email,
+                "Your password was changed ✅",
+                `
   <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
     <h2>Hello ${existingUser.name || "there"},</h2>
     <p>This is a confirmation that the password for your <strong>AI PDF Extractor</strong> account was successfully changed.</p>
@@ -241,11 +266,11 @@ export const resetPassword = async (
     <small style="color:#777;">This is an automated email. Please do not reply.</small>
   </div>
   `
-        )
+            )
         ])
-res.status(200).json({ message: "Password reset successful!" });
+        res.status(200).json({ success: true, message: "Password reset successful!" });
     } catch (error) {
-    console.log(error);
-    next(errorHandler(500, "Error occured while changing user password"));
-}
+        console.log(error);
+        next(errorHandler(500, "Error occured while changing user password"));
+    }
 }

@@ -7,6 +7,10 @@ interface UserDocument extends Document{
     passwordResetTokenHash?:string
     passwordResetExpiresAt?:Date
     passwordChangedAt :Date
+    passwordHistory: Array<{
+        hash: string,
+        changedAt: Date
+    }>
 }
 const UserSchema = new Schema<UserDocument>({
     name:{
@@ -31,7 +35,13 @@ const UserSchema = new Schema<UserDocument>({
     },
     passwordChangedAt:{
         type:Date,
-    }
+    },
+    passwordHistory: [
+  {
+    hash: String,
+    changedAt: Date
+  }
+]
 }, {timestamps:true})
 
 export const User = mongoose.model<UserDocument>('user',UserSchema)

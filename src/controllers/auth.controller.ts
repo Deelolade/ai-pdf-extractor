@@ -200,19 +200,35 @@ export const resetPassword = async (
         })
 
         if (!existingUser) {
-            return next(errorHandler(400, "Invalid or expired Token !!"))
+            return next(errorHandler(400, "This password reset link is invalid or has expired."))
         }
+
+        if (existingUser.passwordHistory?.some(p => await bcrypt.compare(password, p.hash))) {
+            return next(errorHandler(400, "You can not reuse a recent password."))
+        }
+        if (!existingUser.passwordHistory) {
+            existingUser.passwordHistory = [];
+        }
+        existingUser.passwordHistory.unshift({
+            hash: existingUser.password,
+            changedAt: new Date()
+        })
+        // Limit to last 3–5 passwords
+        existingUser.passwordHistory = existingUser.passwordHistory.slice(0, 5);
+
 
         const hashedPassword = await bcrypt.hash(password, 10);
         existingUser.password = hashedPassword;
         existingUser.passwordResetExpiresAt = undefined;
         existingUser.passwordResetTokenHash = undefined;
         existingUser.passwordChangedAt = new Date();
-        await existingUser.save();
-        await sendEmail(
-  existingUser.email,
-  "Your password was changed ✅",
-  `
+
+        await Promise.all([
+            existingUser.save()
+        sendEmail(
+            existingUser.email,
+            "Your password was changed ✅",
+            `
   <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
     <h2>Hello ${existingUser.name || "there"},</h2>
     <p>This is a confirmation that the password for your <strong>AI PDF Extractor</strong> account was successfully changed.</p>
@@ -225,10 +241,11 @@ export const resetPassword = async (
     <small style="color:#777;">This is an automated email. Please do not reply.</small>
   </div>
   `
-);
-        res.status(200).json({ message: "Password reset successful!" });
+        )
+        ])
+res.status(200).json({ message: "Password reset successful!" });
     } catch (error) {
-        console.log(error);
-        next(errorHandler(500, "Error occured while changing user password"));
-    }
+    console.log(error);
+    next(errorHandler(500, "Error occured while changing user password"));
+}
 }

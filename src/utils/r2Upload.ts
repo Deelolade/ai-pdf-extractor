@@ -3,14 +3,12 @@ import fs from "fs";
 import { r2 } from "./r2Client";
 import { R2_BUCKET_NAME, R2_PUBLIC_URL } from "./env";
 
-export const uploadToR2 = async ( filepath:string, filename:string)=>{
-    const fileStream = fs.createReadStream(filepath);
-
+export const uploadToR2 = async ( fileBuffer: Buffer, filename:string,  mimetype:string)=>{
     const uploadParams = {
         Bucket: R2_BUCKET_NAME,
         Key:filename,
-        Body: fileStream,
-        ContentType: "application/pdf"
+        Body: fileBuffer,
+        ContentType: mimetype
     }
     await r2.send(new PutObjectCommand(uploadParams));
 

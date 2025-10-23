@@ -2,7 +2,7 @@ import axios from "axios";
 // import pdfParse from "pdf-parse";
 // import * as pdfParse from "pdf-parse";
 // import pdfParse from "pdf-parse";
-const pdfParse = require("pdf-parse");
+const { PDFParse } = require("pdf-parse");
 
 
 export const extractTextFromPdf = async (
@@ -11,14 +11,10 @@ export const extractTextFromPdf = async (
 ): Promise<string> => {
     try {
         console.log("Downloading file from URL...", fileUrl);
-        const response = await axios.get(fileUrl, {
-            responseType: "arraybuffer",
-        });
+        const parser = new PDFParse({ url: fileUrl });
+        const pdfData = await parser.getText();
 
-        const dataBuffer = Buffer.from(response.data);
-        console.log("Parsing PDF...");
-        const pdfData = await pdfParse(dataBuffer); 
-        console.log("PDF parsed successfully.");
+        console.log("PDF data retrieved, extracting text...");
     
         const textArray = pdfData.text.split(/\f+/); 
         const limitedText = textArray.slice(0, maxPages).join("\n");

@@ -3,6 +3,7 @@ import { RequestWithFile } from "../types/express";
 import { errorHandler } from "../utils/errorHandler";
 import cloudinary from "../utils/cloudinary";
 import { extractTextFromPdf } from "../utils/pdfExtractor";
+import { uploadToR2 } from "../utils/r2Upload";
 const { PDFParse } = require('pdf-parse');
 
 export const uploadPdf = async(req:RequestWithFile, res:Response, next:NextFunction)=>{
@@ -13,22 +14,18 @@ export const uploadPdf = async(req:RequestWithFile, res:Response, next:NextFunct
       return next(errorHandler(400, "No file uploaded"));
     }
 
-    // 1️⃣ Upload PDF to Cloudinary
-    const cloudinaryResult = await cloudinary.uploader.upload(req.file.path, {
-      resource_type: "raw",
-    });
+    console.log("Uploading to R2...");
+    const fileUrl = await uploadToR2(req.file.path, req.file.filename);
 
-    const fileUrl = cloudinaryResult.secure_url;
-    console.log("File uploaded to Cloudinary:", fileUrl);
+    console.log("Extracting text...");
+    const extractedText = await extractTextFromPdf(fileUrl);
 
-    // 2️⃣ Parse PDF text directly from Cloudinary URL
-    const parser = new PDFParse({ url: fileUrl });
-    const result = await parser.getText();
-
-    // 3️⃣ Respond with extracted text
+    console.log("Extracted Text:", extractedText);
+    
     res.status(200).json({
       message: "Text extracted successfully",
-      text: result.text,
+      fileUrl,
+      text: extractedText,
     });
      } catch (error) {
         console.error("Upload error:", error);

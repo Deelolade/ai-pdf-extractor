@@ -3,13 +3,27 @@ import swaggerUi from 'swagger-ui-express';
 import { Express } from 'express';
 
 const options: swaggerDocs.Options = {
-    definition: {
+  definition: {
     openapi: '3.0.0',
     info: {
-    title: 'AI PDF Extractor API',
+      title: 'AI PDF Extractor API',
       version: '1.0.0',
       description: 'API for uploading, processing, and extracting structured data from PDF files using AI-powered extraction techniques.',
     },
+    components: {
+      securitySchemes: {
+        bearerAuth: {                 // 👈 define the auth type
+          type: "http",
+          scheme: "bearer",
+          bearerFormat: "JWT",        // optional: just for clarity
+        },
+      },
+    },
+    security: [
+      {
+        bearerAuth: [],               // 👈 apply globally (optional)
+      },
+    ],
     servers: [
       {
         url: 'http://localhost:5000',
@@ -22,5 +36,5 @@ const options: swaggerDocs.Options = {
 const swaggerSpec = swaggerDocs(options);
 
 export const setupSwagger = (app: Express) => {
-    app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+  app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 }

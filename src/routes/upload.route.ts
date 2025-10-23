@@ -1,6 +1,7 @@
 import express, { Response } from "express";
 import { uploadPdf } from "../controllers/upload.controller";
 import multer from "multer";
+import { authenticateUser } from "../middleware/authMiddleware";
 
 export const uploadRouter =express.Router();
 const upload = multer({storage: multer.memoryStorage()});
@@ -46,4 +47,4 @@ const upload = multer({storage: multer.memoryStorage()});
  *         description: Internal server error (e.g., database failure)
  */
 
-uploadRouter.post('/',upload.single('file'), uploadPdf)
+uploadRouter.post('/',authenticateUser, upload.single('file'), uploadPdf)

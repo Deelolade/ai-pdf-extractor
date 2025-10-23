@@ -40,5 +40,22 @@ export const FRONTEND_URL = process.env.FRONTEND_URL as string;
 if(!FRONTEND_URL){
     throw new Error ("FRONTEND_URL is not defined in .env")
 }
+export const CLOUDFLARE_ACCOUNT_ID = process.env.CLOUDFLARE_ACCOUNT_ID as string;
+if(!CLOUDFLARE_ACCOUNT_ID){
+    throw new Error ("CLOUDFLARE_ACCOUNT_ID is not defined in .env")
+}
+export const R2_ACCESS_KEY_ID = process.env.R2_ACCESS_KEY_ID as string;
+if(!R2_ACCESS_KEY_ID){
+    throw new Error ("R2_ACCESS_KEY_ID is not defined in .env")
+}
+export const R2_SECRET_ACCESS_KEY = process.env.R2_SECRET_ACCESS_KEY as string;
+if(!R2_SECRET_ACCESS_KEY){
+    throw new Error ("R2_SECRET_ACCESS_KEY is not defined in .env")
+}
+export const R2_BUCKET_NAME = process.env.R2_BUCKET_NAME as string;
+if(!R2_BUCKET_NAME){
+    throw new Error ("R2_BUCKET_NAME is not defined in .env")
+}
+
 
 

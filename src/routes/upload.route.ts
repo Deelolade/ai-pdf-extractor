@@ -1,5 +1,5 @@
-import express, { Response } from "express";
-import { uploadPdf } from "../controllers/upload.controller";
+import express from "express";
+import { uploadPdf,summarizePdf } from "../controllers/upload.controller";
 import multer from "multer";
 import { authenticateUser } from "../middleware/authMiddleware";
 
@@ -48,3 +48,33 @@ const upload = multer({storage: multer.memoryStorage()});
  */
 
 uploadRouter.post('/',authenticateUser, upload.single('file'), uploadPdf)
+/**
+ * @openapi
+ * /api/upload/summarize:
+ *   post:
+ *     summary: Summarize text into concise form using AI
+ *     description: Summarize text to be easily readable.
+ *     tags:
+ *       - PDF
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *              - text
+ *             properties:
+ *              text:
+ *               type: string
+ *               description: The text content of the PDF to be summarized
+ *     responses:
+ *       200:
+ *         description: PDF summarized successfully
+ *       400:
+ *         description: Bad request (e.g., invalid input)
+ *       500:
+ *         description: Internal server error (e.g., database failure)
+ */
+
+uploadRouter.post('/summarize',authenticateUser, summarizePdf)

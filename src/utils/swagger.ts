@@ -12,16 +12,16 @@ const options: swaggerDocs.Options = {
     },
     components: {
       securitySchemes: {
-        bearerAuth: {                 // 👈 define the auth type
+        bearerAuth: {            
           type: "http",
           scheme: "bearer",
-          bearerFormat: "JWT",        // optional: just for clarity
+          bearerFormat: "JWT",      
         },
       },
     },
     security: [
       {
-        bearerAuth: [],               // 👈 apply globally (optional)
+        bearerAuth: [],           
       },
     ],
     servers: [

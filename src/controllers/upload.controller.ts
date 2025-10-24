@@ -1,10 +1,9 @@
-import { NextFunction, Response } from "express";
+import { NextFunction, Request, Response } from "express";
 import { RequestWithFile } from "../types/express";
 import { errorHandler } from "../utils/errorHandler";
-import cloudinary from "../utils/cloudinary";
 import { extractTextFromPdf } from "../utils/pdfExtractor";
 import { uploadToR2 } from "../utils/r2Upload";
-const { PDFParse } = require('pdf-parse');
+import { summarizeFullPdf } from "../utils/summarizeFullPdf";
 
 export const uploadPdf = async (req: RequestWithFile, res: Response, next: NextFunction) => {
 
@@ -32,5 +31,22 @@ export const uploadPdf = async (req: RequestWithFile, res: Response, next: NextF
   } catch (error) {
     console.error("Upload error:", error);
     next(errorHandler(500, "filed to upload pdf"))
+  }
+}
+
+export const summarizePdf = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { text } = req.body;
+    if(!text){
+      return next(errorHandler(400, "Text is required for summarization"));
+    }
+    const summary = await summarizeFullPdf(text);
+    console.log("final summary", summary)
+    res.status(200).json({
+      message: "PDF summarized successfully",
+      summary,
+    });
+  } catch (error) {
+    next(errorHandler(500, "failed to summarize pdf"))
   }
 }

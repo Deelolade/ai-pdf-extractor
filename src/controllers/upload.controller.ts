@@ -7,6 +7,7 @@ import { summarizeFullPdf } from "../utils/summarizeFullPdf";
 import { User } from "../models/user.model";
 import { Jwt } from "jsonwebtoken";
 import { Upload } from "../models/upload.model";
+import { MAX_TRIALS } from "../utils/env";
 
 export const uploadPdf = async (req: RequestWithFile, res: Response, next: NextFunction) => {
 
@@ -15,21 +16,27 @@ export const uploadPdf = async (req: RequestWithFile, res: Response, next: NextF
       return next(errorHandler(400, "No file uploaded"));
     }
 
-    console.log("Uploading to R2...");
 
     const { buffer, originalname, mimetype } = req.file;
-    console.log(buffer, originalname, mimetype)
     const fileUrl = await uploadToR2(buffer, originalname, mimetype);
 
     console.log("Extracting text...");
     const extractedText = await extractTextFromPdf(fileUrl);
 
-    console.log("Extracted Text:", extractedText);
-
+    const uploadText = await new Upload({
+      userId: req.user?.id,
+      textExtracted: extractedText,
+      fileName: originalname,
+      fileUrl,
+      wordCount: extractedText.split(' ').length,
+    });
+    await uploadText.save()
     res.status(200).json({
-      message: "Text extracted successfully",
+      message: "File uploaded and text extracted successfully",
       fileUrl,
       text: extractedText,
+      uploadId: uploadText._id,
+
     });
   } catch (error) {
     console.error("Upload error:", error);
@@ -39,30 +46,33 @@ export const uploadPdf = async (req: RequestWithFile, res: Response, next: NextF
 
 export const summarizePdf = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const { text } = req.body;
-    if(!text){
-      return next(errorHandler(400, "Text is required for summarization"));
+    const { uploadId } = req.body;
+    if (!uploadId) {
+      return next(errorHandler(400, "Upload Id is required for summarization"));
     }
-    const summary = await summarizeFullPdf(text);
-    console.log("final summary", summary)
-    const userId = req.user?.id;
-    const user = await User.findById(userId);
-     if (!user) {
-    return next(errorHandler(404, "User not found"));
-  }
-      if(!user.isPaidUser){
-        user.trialCount +=1;
-        await user.save();
+   
+    const uploadRecord = await Upload.findById(uploadId);
+    if (!uploadRecord) {
+      return next(errorHandler(404, "Upload record not found"));
+    }
+    const summary = await summarizeFullPdf(uploadRecord.textExtracted);
+    
+    uploadRecord.summary = summary || "";
+    await uploadRecord.save();
+
+
+    const user = await User.findById(req.user?.id);
+    if (!user) {
+      return next(errorHandler(404, "User not found"));
+    } 
+
+    if (!user.isPaidUser) {
+      if(user.trialCount >= MAX_TRIALS){
+        return next(errorHandler(403, "Trial limit reached. Please upgrade to a paid account."));
       }
-      const uploadText = await new Upload({
-        userId: userId,
-        summary: summary,
-        textExtracted: text,
-        fileName: "N/A",
-        fileUrl: "N/A",
-        wordCount:text.split(' ').length,
-      });
-      await uploadText.save()
+      user.trialCount += 1;
+      await user.save();
+    }
     res.status(200).json({
       message: "PDF summarized successfully",
       summary,

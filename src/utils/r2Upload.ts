@@ -1,5 +1,4 @@
 import { PutObjectCommand } from "@aws-sdk/client-s3";
-import fs from "fs";
 import { r2 } from "./r2Client";
 import { R2_BUCKET_NAME, R2_PUBLIC_URL } from "./env";
 

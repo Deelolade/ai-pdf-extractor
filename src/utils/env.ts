@@ -60,5 +60,10 @@ export const R2_PUBLIC_URL = process.env.R2_PUBLIC_URL as string;
 if(!R2_PUBLIC_URL){
     throw new Error ("R2_PUBLIC_URL is not defined in .env")
 }
+export const MAX_TRIALS = Number(process.env.MAX_TRIALS);
+if(isNaN(MAX_TRIALS)){
+    throw new Error ("MAX_TRIALS is not defined or is not a valid number in .env")
+}
+
 
 

@@ -29,7 +29,7 @@ const upload = multer({storage: multer.memoryStorage()});
  *                 description: The PDF file to be uploaded
  *     responses:
  *       200:
- *         description: Text extracted successfully
+ *         description: File uploaded and text extracted successfully
  *         content:
  *           application/json:
  *             schema:
@@ -37,12 +37,14 @@ const upload = multer({storage: multer.memoryStorage()});
  *               properties:
  *                 message:
  *                   type: string
- *                   example: Text extracted successfully
+ *                   example: File uploaded and text extracted successfully
  *                 text:
  *                   type: string
  *                   example: "This is the extracted text from the PDF."
  *       400:
- *         description: Bad request (e.g., invalid input)
+ *         description: Upload Id is required for summarization
+ *       404:
+ *         description: User not found
  *       500:
  *         description: Internal server error (e.g., database failure)
  */
@@ -63,11 +65,11 @@ uploadRouter.post('/',authenticateUser, upload.single('file'), uploadPdf)
  *           schema:
  *             type: object
  *             required:
- *              - text
+ *              - uploadId
  *             properties:
- *              text:
- *               type: string
- *               description: The text content of the PDF to be summarized
+ *              uploadId:
+ *               uploadId: string
+ *               description: The id for text content of the PDF to be summarized
  *     responses:
  *       200:
  *         description: PDF summarized successfully

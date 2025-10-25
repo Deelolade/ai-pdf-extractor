@@ -1,21 +1,13 @@
-import axios from "axios";
-// import pdfParse from "pdf-parse";
-// import * as pdfParse from "pdf-parse";
-// import pdfParse from "pdf-parse";
 const { PDFParse } = require("pdf-parse");
-
 
 export const extractTextFromPdf = async (
     fileUrl: string,
     maxPages: number = 5
 ): Promise<string> => {
     try {
-        console.log("Downloading file from URL...", fileUrl);
         const parser = new PDFParse({ url: fileUrl });
         const pdfData = await parser.getText();
-
-        console.log("PDF data retrieved, extracting text...");
-    
+        
         const textArray = pdfData.text.split(/\f+/); 
         const limitedText = textArray.slice(0, maxPages).join("\n");
 

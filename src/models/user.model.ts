@@ -4,6 +4,8 @@ interface UserDocument extends Document{
     name: string,
     email: string,
     password: string
+    trialCount:number
+    isPaidUser:boolean
     passwordResetTokenHash?:string
     passwordResetExpiresAt?:Date
     passwordChangedAt :Date
@@ -25,6 +27,14 @@ const UserSchema = new Schema<UserDocument>({
     password: {
         required: true,
         type:String
+    },
+    trialCount:{
+        default:0,
+        type:Number
+    },
+    isPaidUser:{
+        type:Boolean,
+        default:false
     },
     passwordResetTokenHash:{
         type:String

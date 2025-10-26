@@ -81,3 +81,30 @@ export const summarizePdf = async (req: Request, res: Response, next: NextFuncti
     next(errorHandler(500, "failed to summarize pdf"))
   }
 }
+export const getAllMyUploads = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const allUploads = await Upload.find({userId: req.user?.id}).sort({createdAt: -1});
+    res.status(201).json({
+      success: true,
+      message: "Uploads fetched successfully",
+      uploads: allUploads
+    })
+  } catch (error) {
+    next(errorHandler(500, "failed to get uploads"))
+  }
+}
+export const deleteUpload = async (req:Request, res:Response, next:NextFunction)=>{
+  try {
+    const { id }= req.params;
+    console.log(req.params)
+    await Upload.findOneAndDelete({id})
+  res.status(201).json({
+    success:true,
+    message:"Upload have been deleted successfully !!"
+  })
+  
+  } catch (error) {
+    console.log(error)  
+    next(errorHandler(500, ""))
+  }
+}

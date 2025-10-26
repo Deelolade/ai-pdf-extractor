@@ -1,5 +1,5 @@
 import express from "express";
-import { uploadPdf,summarizePdf } from "../controllers/upload.controller";
+import { uploadPdf,summarizePdf, getAllMyUploads, deleteUpload } from "../controllers/upload.controller";
 import multer from "multer";
 import { authenticateUser } from "../middleware/authMiddleware";
 
@@ -75,8 +75,31 @@ uploadRouter.post('/',authenticateUser, upload.single('file'), uploadPdf)
  *         description: PDF summarized successfully
  *       400:
  *         description: Bad request (e.g., invalid input)
+ *       404:
+ *         description: User not found 
  *       500:
  *         description: Internal server error (e.g., database failure)
  */
 
-uploadRouter.post('/summarize',authenticateUser, summarizePdf)
+uploadRouter.post('/summarize',authenticateUser, summarizePdf);
+
+/**
+ * @openapi
+ * /api/upload:
+ *   get:
+ *     summary: Summarize text into concise form using AI
+ *     description: Summarize text to be easily readable.
+ *     tags:
+ *       - PDF
+ *     responses:
+ *       201:
+ *         description: Uploads fetched successfully
+ *       400:
+ *         description: Bad request (e.g., invalid input)
+ *       404:
+ *         description: User not found
+ *       500:
+ *         description: Internal server error (e.g., database failure)
+ */
+uploadRouter.get('/',authenticateUser, getAllMyUploads)
+uploadRouter.delete('/:id',authenticateUser, deleteUpload)

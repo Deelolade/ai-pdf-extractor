@@ -88,12 +88,12 @@ uploadRouter.post('/summarize',authenticateUser,createSummaryLimiter, summarizeP
  * @openapi
  * /api/upload:
  *   get:
- *     summary: Summarize text into concise form using AI
- *     description: Summarize text to be easily readable.
+ *     summary: Fetch all uploads of the authenticated user
+ *     description: Retrieves all PDF uploads and summaries associated with the authenticated user.
  *     tags:
  *       - PDF
  *     responses:
- *       201:
+ *       200:
  *         description: Uploads fetched successfully
  *       400:
  *         description: Bad request (e.g., invalid input)
@@ -103,5 +103,30 @@ uploadRouter.post('/summarize',authenticateUser,createSummaryLimiter, summarizeP
  *         description: Internal server error (e.g., database failure)
  */
 uploadRouter.get('/',authenticateUser,getAllUploadsLimiter, getAllMyUploads)
+/**
+ * @openapi
+ * /api/upload/{id}:
+ *   delete:
+ *     summary: Delete upload of the authenticated user
+ *     description: Delete uploaded document of an authenticated user.
+ *     tags:
+ *       - PDF
+ *     parameters:
+ *       - in : path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The id to delete the upload
+ *     responses:
+ *       200:
+ *         description: Upload have been deleted successfully !!
+ *       400:
+ *         description: Bad request (e.g., invalid input)
+ *       404:
+ *         description: Upload not found or unauthorized 
+ *       500:
+ *         description: Internal server error (e.g., database failure)
+ */
 
 uploadRouter.delete('/:id',authenticateUser, deleteUploadLimiter, deleteUpload)

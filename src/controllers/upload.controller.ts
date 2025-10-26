@@ -102,11 +102,11 @@ export const deleteUpload = async (req: Request, res: Response, next: NextFuncti
     const findUpload = await Upload.findOne({ _id: id, userId })
 
     if (!findUpload) {
-      return next(errorHandler(400, "Upload not found or unauthorized "))
+      return next(errorHandler(404, "Upload not found or unauthorized "))
     }
     const filename = findUpload.fileName
     await deleteFromR2(filename)
-    
+
     await Upload.findByIdAndDelete(id)
     res.status(200).json({
       success: true,

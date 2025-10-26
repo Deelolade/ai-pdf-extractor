@@ -2,6 +2,7 @@ import express from "express";
 import { uploadPdf,summarizePdf, getAllMyUploads, deleteUpload } from "../controllers/upload.controller";
 import multer from "multer";
 import { authenticateUser } from "../middleware/authMiddleware";
+import { createSummaryLimiter, createUploadLimiter, deleteUploadLimiter, getAllUploadsLimiter } from "../utils/rate-limiter";
 
 export const uploadRouter =express.Router();
 const upload = multer({storage: multer.memoryStorage()});
@@ -49,7 +50,7 @@ const upload = multer({storage: multer.memoryStorage()});
  *         description: Internal server error (e.g., database failure)
  */
 
-uploadRouter.post('/',authenticateUser, upload.single('file'), uploadPdf)
+uploadRouter.post('/',authenticateUser,createUploadLimiter, upload.single('file'), uploadPdf)
 /**
  * @openapi
  * /api/upload/summarize:
@@ -81,7 +82,7 @@ uploadRouter.post('/',authenticateUser, upload.single('file'), uploadPdf)
  *         description: Internal server error (e.g., database failure)
  */
 
-uploadRouter.post('/summarize',authenticateUser, summarizePdf);
+uploadRouter.post('/summarize',authenticateUser,createSummaryLimiter, summarizePdf);
 
 /**
  * @openapi
@@ -101,5 +102,6 @@ uploadRouter.post('/summarize',authenticateUser, summarizePdf);
  *       500:
  *         description: Internal server error (e.g., database failure)
  */
-uploadRouter.get('/',authenticateUser, getAllMyUploads)
-uploadRouter.delete('/:id',authenticateUser, deleteUpload)
+uploadRouter.get('/',authenticateUser,getAllUploadsLimiter, getAllMyUploads)
+
+uploadRouter.delete('/:id',authenticateUser, deleteUploadLimiter, deleteUpload)

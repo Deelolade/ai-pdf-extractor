@@ -39,3 +39,37 @@ export const forgotPasswordLimiter = rateLimit({
   legacyHeaders: false,
   ipv6Subnet: 56,
 });
+
+export const createUploadLimiter = rateLimit({
+  windowMs: 10 * 60 * 1000,
+  limit: 5, 
+  message: "Too many create upload requests. Please try again later.",
+  standardHeaders: true,
+  legacyHeaders: false,
+  ipv6Subnet: 56,
+});
+
+export const createSummaryLimiter = rateLimit({
+  windowMs: 10 * 60 * 1000,
+  limit: 5, 
+  message: "Too many create summary requests. Please try again later.",
+  standardHeaders: true,
+  legacyHeaders: false,
+  ipv6Subnet: 56,
+});
+export const getAllUploadsLimiter = rateLimit({
+  windowMs: 10 * 60 * 1000,
+  limit: 5, 
+  message: "Too many create summary requests. Please try again later.",
+  standardHeaders: true,
+  legacyHeaders: false,
+  ipv6Subnet: 56,
+});
+export const deleteUploadLimiter = rateLimit({
+  windowMs: 10 * 60 * 1000,
+  limit: 5, 
+  message: "Too many delete requests. Please try again later.",
+  standardHeaders: true,
+  legacyHeaders: false,
+  ipv6Subnet: 56,
+});

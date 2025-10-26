@@ -50,13 +50,13 @@ export const summarizePdf = async (req: Request, res: Response, next: NextFuncti
     if (!uploadId) {
       return next(errorHandler(400, "Upload Id is required for summarization"));
     }
-   
+
     const uploadRecord = await Upload.findById(uploadId);
     if (!uploadRecord) {
       return next(errorHandler(404, "Upload record not found"));
     }
     const summary = await summarizeFullPdf(uploadRecord.textExtracted);
-    
+
     uploadRecord.summary = summary || "";
     await uploadRecord.save();
 
@@ -64,10 +64,10 @@ export const summarizePdf = async (req: Request, res: Response, next: NextFuncti
     const user = await User.findById(req.user?.id);
     if (!user) {
       return next(errorHandler(404, "User not found"));
-    } 
+    }
 
     if (!user.isPaidUser) {
-      if(user.trialCount >= MAX_TRIALS){
+      if (user.trialCount >= MAX_TRIALS) {
         return next(errorHandler(403, "Trial limit reached. Please upgrade to a paid account."));
       }
       user.trialCount += 1;
@@ -83,7 +83,7 @@ export const summarizePdf = async (req: Request, res: Response, next: NextFuncti
 }
 export const getAllMyUploads = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const allUploads = await Upload.find({userId: req.user?.id}).sort({createdAt: -1});
+    const allUploads = await Upload.find({ userId: req.user?.id }).sort({ createdAt: -1 });
     res.status(201).json({
       success: true,
       message: "Uploads fetched successfully",
@@ -93,18 +93,28 @@ export const getAllMyUploads = async (req: Request, res: Response, next: NextFun
     next(errorHandler(500, "failed to get uploads"))
   }
 }
-export const deleteUpload = async (req:Request, res:Response, next:NextFunction)=>{
+export const deleteUpload = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const { id }= req.params;
+    const { id } = req.params;
+    const userId = req.user?.id;
     console.log(req.params)
-    await Upload.findOneAndDelete({id})
-  res.status(201).json({
-    success:true,
-    message:"Upload have been deleted successfully !!"
-  })
-  
+    if (!id) {
+      return next(errorHandler(400, "Upload id is required"))
+    }
+    const findUpload = await Upload.findOne({ _id: id, userId })
+
+    if (!findUpload) {
+      return next(errorHandler(400, "Upload not found or unauthorized "))
+    }
+
+    await Upload.findByIdAndDelete(id)
+    res.status(200).json({
+      success: true,
+      message: "Upload have been deleted successfully !!"
+    })
+
   } catch (error) {
-    console.log(error)  
-    next(errorHandler(500, ""))
+    console.log(error)
+    next(errorHandler(500, "Failed to delete upload"))
   }
 }

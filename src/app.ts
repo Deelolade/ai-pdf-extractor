@@ -14,7 +14,7 @@ connectDb()
 setupSwagger(app);
 
 app.use('/api/auth',userRouter)
-app.use('/api/upload',uploadRouter)
+app.use('/api/document',uploadRouter)
 app.get('/', async(req:Request, res: Response): Promise<void> =>{
   try {
     res.send(`welcome to the best pdf extractor !!`)

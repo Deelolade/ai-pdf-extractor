@@ -9,7 +9,7 @@ const upload = multer({storage: multer.memoryStorage()});
 
 /**
  * @openapi
- * /api/upload:
+ * /api/document/create:
  *   post:
  *     summary: Upload a PDF file and extract text
  *     description: Uploads a PDF file, extracts its text, and returns the extracted content.
@@ -50,10 +50,10 @@ const upload = multer({storage: multer.memoryStorage()});
  *         description: Internal server error (e.g., database failure)
  */
 
-uploadRouter.post('/',authenticateUser,createUploadLimiter, upload.single('file'), uploadPdf)
+uploadRouter.post('/create',authenticateUser,createUploadLimiter, upload.single('file'), uploadPdf)
 /**
  * @openapi
- * /api/upload/summarize:
+ * /api/document/summarize:
  *   post:
  *     summary: Summarize text into concise form using AI
  *     description: Summarize text to be easily readable.
@@ -83,10 +83,9 @@ uploadRouter.post('/',authenticateUser,createUploadLimiter, upload.single('file'
  */
 
 uploadRouter.post('/summarize',authenticateUser,createSummaryLimiter, summarizePdf);
-
 /**
  * @openapi
- * /api/upload:
+ * /api/document/:
  *   get:
  *     summary: Fetch all uploads of the authenticated user
  *     description: Retrieves all PDF uploads and summaries associated with the authenticated user.
@@ -105,7 +104,7 @@ uploadRouter.post('/summarize',authenticateUser,createSummaryLimiter, summarizeP
 uploadRouter.get('/',authenticateUser,getAllUploadsLimiter, getAllMyUploads)
 /**
  * @openapi
- * /api/upload/{id}:
+ * /api/document/{id}:
  *   delete:
  *     summary: Delete upload of the authenticated user
  *     description: Delete uploaded document of an authenticated user.
@@ -128,5 +127,4 @@ uploadRouter.get('/',authenticateUser,getAllUploadsLimiter, getAllMyUploads)
  *       500:
  *         description: Internal server error (e.g., database failure)
  */
-
 uploadRouter.delete('/:id',authenticateUser, deleteUploadLimiter, deleteUpload)

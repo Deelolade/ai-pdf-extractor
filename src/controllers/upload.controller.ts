@@ -5,7 +5,6 @@ import { extractTextFromPdf } from "../utils/pdfExtractor";
 import { uploadToR2 } from "../utils/r2Upload";
 import { summarizeFullPdf } from "../utils/summarizeFullPdf";
 import { User } from "../models/user.model";
-import { Jwt } from "jsonwebtoken";
 import { Upload } from "../models/upload.model";
 import { MAX_TRIALS } from "../utils/env";
 import { deleteFromR2 } from "../utils/r2Delete";

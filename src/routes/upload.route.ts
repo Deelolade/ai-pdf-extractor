@@ -3,8 +3,9 @@ import { uploadPdf,summarizePdf, getAllMyUploads, deleteUpload } from "../contro
 import multer from "multer";
 import { authenticateUser } from "../middleware/authMiddleware";
 import { createSummaryLimiter, createUploadLimiter, deleteUploadLimiter, getAllUploadsLimiter } from "../utils/rate-limiter";
+import { converseWithLLM } from "../controllers/converseWithLLM.controller";
 
-export const uploadRouter =express.Router();
+export const documentRouter =express.Router();
 const upload = multer({storage: multer.memoryStorage()});
 
 /**
@@ -50,7 +51,7 @@ const upload = multer({storage: multer.memoryStorage()});
  *         description: Internal server error (e.g., database failure)
  */
 
-uploadRouter.post('/create',authenticateUser,createUploadLimiter, upload.single('file'), uploadPdf)
+documentRouter.post('/create',authenticateUser,createUploadLimiter, upload.single('file'), uploadPdf)
 /**
  * @openapi
  * /api/document/summarize:
@@ -82,7 +83,7 @@ uploadRouter.post('/create',authenticateUser,createUploadLimiter, upload.single(
  *         description: Internal server error (e.g., database failure)
  */
 
-uploadRouter.post('/summarize',authenticateUser,createSummaryLimiter, summarizePdf);
+documentRouter.post('/summarize',authenticateUser,createSummaryLimiter, summarizePdf);
 /**
  * @openapi
  * /api/document/:
@@ -101,7 +102,7 @@ uploadRouter.post('/summarize',authenticateUser,createSummaryLimiter, summarizeP
  *       500:
  *         description: Internal server error (e.g., database failure)
  */
-uploadRouter.get('/',authenticateUser,getAllUploadsLimiter, getAllMyUploads)
+documentRouter.get('/',authenticateUser,getAllUploadsLimiter, getAllMyUploads)
 /**
  * @openapi
  * /api/document/{id}:
@@ -127,4 +128,8 @@ uploadRouter.get('/',authenticateUser,getAllUploadsLimiter, getAllMyUploads)
  *       500:
  *         description: Internal server error (e.g., database failure)
  */
-uploadRouter.delete('/:id',authenticateUser, deleteUploadLimiter, deleteUpload)
+documentRouter.delete('/:id',authenticateUser, deleteUploadLimiter, deleteUpload)
+
+
+
+documentRouter.post('/converse', authenticateUser, converseWithLLM);

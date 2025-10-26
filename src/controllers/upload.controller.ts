@@ -8,15 +8,13 @@ import { User } from "../models/user.model";
 import { Jwt } from "jsonwebtoken";
 import { Upload } from "../models/upload.model";
 import { MAX_TRIALS } from "../utils/env";
+import { deleteFromR2 } from "../utils/r2Delete";
 
 export const uploadPdf = async (req: RequestWithFile, res: Response, next: NextFunction) => {
-
   try {
     if (!req.file) {
       return next(errorHandler(400, "No file uploaded"));
     }
-
-
     const { buffer, originalname, mimetype } = req.file;
     const fileUrl = await uploadToR2(buffer, originalname, mimetype);
 
@@ -106,13 +104,14 @@ export const deleteUpload = async (req: Request, res: Response, next: NextFuncti
     if (!findUpload) {
       return next(errorHandler(400, "Upload not found or unauthorized "))
     }
-
+    const filename = findUpload.fileName
+    await deleteFromR2(filename)
+    
     await Upload.findByIdAndDelete(id)
     res.status(200).json({
       success: true,
       message: "Upload have been deleted successfully !!"
     })
-
   } catch (error) {
     console.log(error)
     next(errorHandler(500, "Failed to delete upload"))

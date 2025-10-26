@@ -2,7 +2,7 @@ import express from "express";
 import { uploadPdf,summarizePdf, getAllMyUploads, deleteUpload } from "../controllers/upload.controller";
 import multer from "multer";
 import { authenticateUser } from "../middleware/authMiddleware";
-import { createSummaryLimiter, createUploadLimiter, deleteUploadLimiter, getAllUploadsLimiter } from "../utils/rate-limiter";
+import { converseRateLimiter, createSummaryLimiter, createUploadLimiter, deleteUploadLimiter, getAllUploadsLimiter } from "../utils/rate-limiter";
 import { converseWithLLM } from "../controllers/converseWithLLM.controller";
 
 export const documentRouter =express.Router();
@@ -132,4 +132,4 @@ documentRouter.delete('/:id',authenticateUser, deleteUploadLimiter, deleteUpload
 
 
 
-documentRouter.post('/converse', authenticateUser, converseWithLLM);
+documentRouter.post('/converse', authenticateUser,converseRateLimiter, converseWithLLM);

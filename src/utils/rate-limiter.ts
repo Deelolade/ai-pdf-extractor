@@ -73,3 +73,11 @@ export const deleteUploadLimiter = rateLimit({
   legacyHeaders: false,
   ipv6Subnet: 56,
 });
+export const converseRateLimiter = rateLimit({
+  windowMs: 10 * 60 * 1000,
+  limit: 10, 
+  message: "Too many chat requests. Please try again later.",
+  standardHeaders: true,
+  legacyHeaders: false,
+  ipv6Subnet: 56,
+});

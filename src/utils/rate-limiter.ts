@@ -43,7 +43,7 @@ export const forgotPasswordLimiter = rateLimit({
 export const createUploadLimiter = rateLimit({
   windowMs: 10 * 60 * 1000,
   limit: 5, 
-  message: "Too many create upload requests. Please try again later.",
+  message: "Too many upload requests. Please wait a bit before uploading again.",
   standardHeaders: true,
   legacyHeaders: false,
   ipv6Subnet: 56,
@@ -51,7 +51,7 @@ export const createUploadLimiter = rateLimit({
 
 export const createSummaryLimiter = rateLimit({
   windowMs: 10 * 60 * 1000,
-  limit: 5, 
+  limit: 10, 
   message: "Too many create summary requests. Please try again later.",
   standardHeaders: true,
   legacyHeaders: false,
@@ -59,8 +59,8 @@ export const createSummaryLimiter = rateLimit({
 });
 export const getAllUploadsLimiter = rateLimit({
   windowMs: 10 * 60 * 1000,
-  limit: 5, 
-  message: "Too many create summary requests. Please try again later.",
+  limit: 50, 
+  message: "Too many requests. Please try again later.",
   standardHeaders: true,
   legacyHeaders: false,
   ipv6Subnet: 56,

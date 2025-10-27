@@ -3,7 +3,7 @@ import { connectDb } from "./utils/db";
 import chalk from "chalk";
 import { userRouter } from "./routes/auth.routes";
 import { globalErrorHandler } from "./middleware/errorMiddleware";
-import { documentRouter } from "./routes/upload.route";
+import { documentRouter } from "./routes/document.route";
 import { setupSwagger } from "./utils/swagger";
 
 const app = express();

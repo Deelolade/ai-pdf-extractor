@@ -1,5 +1,5 @@
 import express from "express";
-import { uploadPdf,summarizePdf, getAllMyUploads, deleteUpload } from "../controllers/upload.controller";
+import { uploadPdf,summarizePdf, getAllMyDocuments, deleteDocument } from "../controllers/document.controller"
 import multer from "multer";
 import { authenticateUser } from "../middleware/authMiddleware";
 import { converseRateLimiter, createSummaryLimiter, createUploadLimiter, deleteUploadLimiter, getAllUploadsLimiter } from "../utils/rate-limiter";
@@ -102,7 +102,7 @@ documentRouter.post('/summarize',authenticateUser,createSummaryLimiter, summariz
  *       500:
  *         description: Internal server error (e.g., database failure)
  */
-documentRouter.get('/',authenticateUser,getAllUploadsLimiter, getAllMyUploads)
+documentRouter.get('/',authenticateUser,getAllUploadsLimiter, getAllMyDocuments)
 /**
  * @openapi
  * /api/document/{id}:
@@ -128,7 +128,7 @@ documentRouter.get('/',authenticateUser,getAllUploadsLimiter, getAllMyUploads)
  *       500:
  *         description: Internal server error (e.g., database failure)
  */
-documentRouter.delete('/:id',authenticateUser, deleteUploadLimiter, deleteUpload)
+documentRouter.delete('/:id',authenticateUser, deleteUploadLimiter, deleteDocument)
 
 
 

@@ -131,5 +131,39 @@ documentRouter.get('/',authenticateUser,getAllUploadsLimiter, getAllMyUploads)
 documentRouter.delete('/:id',authenticateUser, deleteUploadLimiter, deleteUpload)
 
 
+/**
+ * @openapi
+ * /api/document/converse:
+ *   post:
+ *     summary: Converse with LLM about uploaded PDF
+ *     description: Converse with LLM to know more details about the document.
+ *     tags:
+ *       - PDF
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *              - uploadId
+ *              - message
+ *             properties:
+ *              uploadId:
+ *               uploadId: string
+ *               description: The id for text content of the PDF to be summarized
+ *              message:
+ *               message: string
+ *               description: The message/question to converse with LLM
+ *     responses:
+ *       200:
+ *         description: Response generated successfully !!
+ *       400:
+ *         description: Bad request (e.g., invalid input)
+ *       404:
+ *         description: Upload not found or unauthorized 
+ *       500:
+ *         description: Internal server error (e.g., database failure)
+ */
 
 documentRouter.post('/converse', authenticateUser,converseRateLimiter, converseWithLLM);

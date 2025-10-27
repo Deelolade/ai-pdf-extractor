@@ -65,5 +65,13 @@ if(isNaN(MAX_TRIALS)){
     throw new Error ("MAX_TRIALS is not defined or is not a valid number in .env")
 }
 
+export const PINECONE_API_KEY = process.env.PINECONE_API_KEY as string;
+if(!PINECONE_API_KEY){
+    throw new Error ("PINECONE_API_KEY is not defined in .env")
+}
+export const PINECONE_INDEX = process.env.PINECONE_INDEX as string;
+if(!PINECONE_INDEX){
+    throw new Error ("PINECONE_INDEX is not defined in .env")
+}
 
 

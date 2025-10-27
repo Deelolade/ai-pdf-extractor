@@ -10,7 +10,8 @@ const openai = new OpenAI({
 })
 export const converseWithLLM = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const { message, uploadId } = req.body;
+        const { uploadId } = req.params;
+        const { message } = req.body;
         if (!message || !uploadId) {
             return next(errorHandler(400, "Message and Upload ID are required"))
         }

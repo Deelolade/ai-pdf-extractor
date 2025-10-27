@@ -15,7 +15,7 @@ const upload = multer({storage: multer.memoryStorage()});
  *     summary: Upload a PDF file and extract text
  *     description: Uploads a PDF file, extracts its text, and returns the extracted content.
  *     tags:
- *       - PDF
+ *       - Document
  *     requestBody:
  *       required: true
  *       content:
@@ -50,28 +50,23 @@ const upload = multer({storage: multer.memoryStorage()});
  *       500:
  *         description: Internal server error (e.g., database failure)
  */
+documentRouter.post('/create',authenticateUser,createUploadLimiter, upload.single('file'), uploadPdf);
 
-documentRouter.post('/create',authenticateUser,createUploadLimiter, upload.single('file'), uploadPdf)
 /**
  * @openapi
- * /api/document/summarize:
+ * /api/document/summarize/{uploadId}:
  *   post:
  *     summary: Summarize text into concise form using AI
  *     description: Summarize text to be easily readable.
  *     tags:
- *       - PDF
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             required:
- *              - uploadId
- *             properties:
- *              uploadId:
- *               uploadId: string
- *               description: The id for text content of the PDF to be summarized
+ *       - Document
+ *     parameters:
+ *       - in : path
+ *         name: uploadId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description:  The id for text content of the PDF to be summarized
  *     responses:
  *       200:
  *         description: PDF summarized successfully
@@ -82,8 +77,8 @@ documentRouter.post('/create',authenticateUser,createUploadLimiter, upload.singl
  *       500:
  *         description: Internal server error (e.g., database failure)
  */
+documentRouter.post('/summarize/:uploadId',authenticateUser,createSummaryLimiter, summarizePdf);
 
-documentRouter.post('/summarize',authenticateUser,createSummaryLimiter, summarizePdf);
 /**
  * @openapi
  * /api/document/:
@@ -91,7 +86,7 @@ documentRouter.post('/summarize',authenticateUser,createSummaryLimiter, summariz
  *     summary: Fetch all uploads of the authenticated user
  *     description: Retrieves all PDF uploads and summaries associated with the authenticated user.
  *     tags:
- *       - PDF
+ *       - Document
  *     responses:
  *       200:
  *         description: Uploads fetched successfully
@@ -103,6 +98,7 @@ documentRouter.post('/summarize',authenticateUser,createSummaryLimiter, summariz
  *         description: Internal server error (e.g., database failure)
  */
 documentRouter.get('/',authenticateUser,getAllUploadsLimiter, getAllMyDocuments)
+
 /**
  * @openapi
  * /api/document/{id}:
@@ -110,7 +106,7 @@ documentRouter.get('/',authenticateUser,getAllUploadsLimiter, getAllMyDocuments)
  *     summary: Delete upload of the authenticated user
  *     description: Delete uploaded document of an authenticated user.
  *     tags:
- *       - PDF
+ *       - Document
  *     parameters:
  *       - in : path
  *         name: id
@@ -130,6 +126,41 @@ documentRouter.get('/',authenticateUser,getAllUploadsLimiter, getAllMyDocuments)
  */
 documentRouter.delete('/:id',authenticateUser, deleteUploadLimiter, deleteDocument)
 
-
-
-documentRouter.post('/converse', authenticateUser,converseRateLimiter, converseWithLLM);
+/**
+ * @openapi
+ * /api/document/converse/{uploadId}:
+ *   post:
+ *     summary: Hold conversations with the LLM to know more details about a document
+ *     description: Send a message to the LLM to ask questions or request insights about the uploaded document.
+ *     tags:
+ *       - Document
+ *     parameters:
+ *       - in: path
+ *         name: uploadId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The ID of the document to converse about
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - message
+ *             properties:
+ *               message:
+ *                 type: string
+ *                 description: The user's message or question to the LLM
+ *     responses:
+ *       200:
+ *         description: Response generated successfully
+ *       400:
+ *         description: Bad request (e.g., invalid input)
+ *       404:
+ *         description: Document not found or unauthorized
+ *       500:
+ *         description: Internal server error (e.g., AI or database failure)
+ */
+documentRouter.post('/converse/:uploadId', authenticateUser,converseRateLimiter, converseWithLLM);

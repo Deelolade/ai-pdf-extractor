@@ -8,6 +8,7 @@ import { User } from "../models/user.model";
 import { Upload } from "../models/upload.model";
 import { MAX_TRIALS } from "../utils/env";
 import { deleteFromR2 } from "../utils/r2Delete";
+import { parse } from "path";
 
 export const uploadPdf = async (req: RequestWithFile, res: Response, next: NextFunction) => {
   try {
@@ -43,7 +44,8 @@ export const uploadPdf = async (req: RequestWithFile, res: Response, next: NextF
 
 export const summarizePdf = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const { uploadId } = req.body;
+    const { uploadId } = req.params;
+    console.log(req.params)
     if (!uploadId) {
       return next(errorHandler(400, "Upload Id is required for summarization"));
     }
@@ -78,19 +80,32 @@ export const summarizePdf = async (req: Request, res: Response, next: NextFuncti
     next(errorHandler(500, "failed to summarize pdf"))
   }
 }
-export const getAllMyUploads = async (req: Request, res: Response, next: NextFunction) => {
+export const getAllMyDocuments = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const allUploads = await Upload.find({ userId: req.user?.id }).sort({ createdAt: -1 });
+    const userId = req.user?.id;
+    const page = parseInt(req.query.page as string) || 1;
+    const limit = parseInt (req.query.limit as string) || 10;
+
+    const skip = (page - 1) * limit;
+
+    const allDocuments = await Upload.find({userId}).sort({ createdAt: -1 }).skip(skip).limit(limit);
+
+    const totalDocuments = await Upload.countDocuments({userId});
+
+    const totalPages = Math.ceil(totalDocuments / limit)
     res.status(201).json({
       success: true,
-      message: "Uploads fetched successfully",
-      uploads: allUploads
+      message: "All documents fetched successfully",
+      documents: allDocuments,
+      totalDocuments: totalDocuments,
+      totalPages: totalPages,
+      currentPage: page,
     })
   } catch (error) {
     next(errorHandler(500, "failed to get uploads"))
   }
 }
-export const deleteUpload = async (req: Request, res: Response, next: NextFunction) => {
+export const deleteDocument = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { id } = req.params;
     const userId = req.user?.id;

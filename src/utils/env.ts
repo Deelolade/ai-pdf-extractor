@@ -73,5 +73,8 @@ export const PINECONE_INDEX = process.env.PINECONE_INDEX as string;
 if(!PINECONE_INDEX){
     throw new Error ("PINECONE_INDEX is not defined in .env")
 }
-
+export const OPENAI_APIKEY = process.env.OPENAI_APIKEY as string;
+if(!OPENAI_APIKEY){
+    throw new Error ("OPENAI_APIKEY is not defined in .env")
+}
 

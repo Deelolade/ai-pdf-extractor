@@ -1,13 +1,17 @@
 import { NextFunction, Request, Response } from "express"
 import { errorHandler } from "../utils/errorHandler"
 import OpenAI from "openai";
-import { apiKey, PINECONE_INDEX } from "../utils/env";
+import { apiKey, OPENAI_APIKEY, PINECONE_INDEX } from "../utils/env";
 import { Upload } from "../models/upload.model";
 import { pc } from "../utils/pinecone";
 
 const openai = new OpenAI({
     apiKey: apiKey,
     baseURL: "https://openrouter.ai/api/v1",
+})
+
+const openaiEmbed = new OpenAI({
+    apiKey: OPENAI_APIKEY
 })
 export const converseWithLLM = async (req: Request, res: Response, next: NextFunction) => {
     try {
@@ -18,14 +22,14 @@ export const converseWithLLM = async (req: Request, res: Response, next: NextFun
         }
         const upload = await Upload.findOne({ _id: uploadId, userId: req.user?.id });
 
-        const queryEmbeddings = await openai.embeddings.create({
+        const queryEmbeddings = await openaiEmbed.embeddings.create({
             model: "text-embedding-3-small",
             input: message
         })
 
         const index = pc.index(PINECONE_INDEX);
 
-        if(!queryEmbeddings?.data?.[0]?.embedding){
+        if (!queryEmbeddings?.data?.[0]?.embedding) {
             return next(errorHandler(500, "Failed to generate embeddings"))
         }
         console.log("Embedding length:", queryEmbeddings.data[0].embedding.length);

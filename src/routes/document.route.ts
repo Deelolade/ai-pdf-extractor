@@ -4,6 +4,7 @@ import multer from "multer";
 import { authenticateUser } from "../middleware/authMiddleware";
 import { converseRateLimiter, createSummaryLimiter, createUploadLimiter, deleteUploadLimiter, getAllUploadsLimiter } from "../utils/rate-limiter";
 import { converseWithLLM } from "../controllers/converseWithLLM.controller";
+import { checkSubscription } from "../middleware/checkSubscription";
 
 export const documentRouter =express.Router();
 const upload = multer({storage: multer.memoryStorage()});
@@ -50,7 +51,7 @@ const upload = multer({storage: multer.memoryStorage()});
  *       500:
  *         description: Internal server error (e.g., database failure)
  */
-documentRouter.post('/create',authenticateUser,createUploadLimiter, upload.single('file'), uploadPdf);
+documentRouter.post('/create',authenticateUser, checkSubscription, createUploadLimiter, upload.single('file'), uploadPdf);
 
 /**
  * @openapi
@@ -77,7 +78,7 @@ documentRouter.post('/create',authenticateUser,createUploadLimiter, upload.singl
  *       500:
  *         description: Internal server error (e.g., database failure)
  */
-documentRouter.post('/summarize/:uploadId',authenticateUser,createSummaryLimiter, summarizePdf);
+documentRouter.post('/summarize/:uploadId',authenticateUser, checkSubscription, createSummaryLimiter, summarizePdf);
 
 /**
  * @openapi
@@ -163,7 +164,7 @@ documentRouter.delete('/:id',authenticateUser, deleteUploadLimiter, deleteDocume
  *       500:
  *         description: Internal server error (e.g., AI or database failure)
  */
-documentRouter.post('/converse/:uploadId', authenticateUser,converseRateLimiter, converseWithLLM);
+documentRouter.post('/converse/:uploadId', checkSubscription, authenticateUser,converseRateLimiter, converseWithLLM);
 
 
 

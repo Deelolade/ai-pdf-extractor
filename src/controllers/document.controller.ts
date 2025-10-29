@@ -56,27 +56,7 @@ export const summarizePdf = async (req: Request, res: Response, next: NextFuncti
 
     uploadRecord.summary = summary || "";
     await uploadRecord.save();
-
-
-    const user = await User.findById(req.user?.id);
-    if (!user) {
-      return next(errorHandler(404, "User not found"));
-    }
-
-    const now = new Date()
-    if (!user.isPaidUser) {
-      if (user.trialCount >= MAX_TRIALS) {
-        return next(errorHandler(403, "Trial limit reached. Please upgrade to a paid account."));
-      }
-      user.trialCount += 1;
-      await user.save();
-    }else{
-        if(!user.subscriptionEndDate || user.subscriptionEndDate < now){
-          user.isPaidUser = false;
-          await user.save();
-          return next(errorHandler(403, "Your subscription has expired. Please renew to continue."));
-        }
-      }
+    
     res.status(200).json({
       message: "PDF summarized successfully",
       summary,

@@ -1,22 +1,3 @@
-<<<<<<< HEAD
-import chalk from "chalk"
-import bcrypt from "bcryptjs"
-import { NextFunction, Request, Response } from "express"
-import { User } from "../models/user.model";
-import jwt from "jsonwebtoken";
-import { JWT_TOKEN } from "../utils/env";
-import { errorHandler } from "../utils/errorHandler";
-import { sendEmail } from "../utils/sendEmail";
-
-
-export const createUser = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-
-    try {
-        const { name, email, password } = req.body;
-        if (!name || !email || !password) {
-            return next(errorHandler(400, "All fields are required !!"))
-
-=======
 import chalk from "chalk";
 import crypto from "crypto";
 import bcrypt from "bcryptjs";
@@ -36,45 +17,27 @@ export const createUser = async (
         const { name, email, password } = req.body;
         if (!name || !email || !password) {
             return next(errorHandler(400, "All fields are required !!"));
->>>>>>> pdf-parser
         }
 
         const existingUser = await User.findOne({ email });
         if (existingUser) {
-<<<<<<< HEAD
-            return next(errorHandler(400, "User already existed !"))
-
-=======
             return next(errorHandler(400, "User already existed !"));
->>>>>>> pdf-parser
         }
         const hashedPassword = await bcrypt.hash(password, 10);
 
         const newUser = await User.create({
             name,
             email,
-<<<<<<< HEAD
-            password: hashedPassword
-=======
             password: hashedPassword,
->>>>>>> pdf-parser
         });
         const token = jwt.sign(
             {
                 id: newUser._id,
-<<<<<<< HEAD
-                email: newUser.email
-            },
-            JWT_TOKEN,
-            { expiresIn: "7d" }
-        )
-=======
                 email: newUser.email,
             },
             JWT_TOKEN,
             { expiresIn: "7d" }
         );
->>>>>>> pdf-parser
         await sendEmail(
             newUser.email,
             "Welcome to AIPDF Extractor 🚀",
@@ -102,31 +65,6 @@ export const createUser = async (
             user: {
                 id: newUser._id,
                 name: newUser.name,
-<<<<<<< HEAD
-                email: newUser.email
-            },
-            token
-        })
-
-    } catch (error) {
-        next(errorHandler(500, "Error occured while saving user to database"))
-    }
-}
-export const signInUser = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-
-    const { email, password } = req.body;
-    if (!email || !password) {
-        return next(errorHandler(400, "All fields are required !!"))
-    }
-    try {
-        const validUser = await User.findOne({ email })
-        if (!validUser) {
-            return next(errorHandler(400, "User not found"))
-        }
-        const validPassword = bcrypt.compareSync(password, validUser.password);
-        if (!validPassword) {
-            return next(errorHandler(400, "Invalid Credentials"))
-=======
                 email: newUser.email,
             },
             token,
@@ -152,17 +90,12 @@ export const signInUser = async (
         const validPassword = bcrypt.compareSync(password, validUser.password);
         if (!validPassword) {
             return next(errorHandler(400, "Invalid Credentials"));
->>>>>>> pdf-parser
         }
         const token = jwt.sign(
             { id: validUser._id, email: validUser.email },
             JWT_TOKEN,
             { expiresIn: "7d" }
-<<<<<<< HEAD
-        )
-=======
         );
->>>>>>> pdf-parser
         await sendEmail(
             validUser.email,
             "New login to your AI PDF Extractor account 🔐",
@@ -185,16 +118,6 @@ export const signInUser = async (
             success: true,
             message: "Signed in successfully",
             user: { id: validUser._id, name: validUser.name, email: validUser.email },
-<<<<<<< HEAD
-            token
-        })
-
-    } catch (error) {
-        console.log(error)
-        next(errorHandler(500, "Error occured while signing in"))
-    }
-}
-=======
             token,
         });
     } catch (error) {
@@ -351,4 +274,3 @@ export const resetPassword = async (
         next(errorHandler(500, "Error occured while changing user password"));
     }
 }
->>>>>>> pdf-parser

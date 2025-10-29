@@ -77,4 +77,17 @@ export const OPENAI_APIKEY = process.env.OPENAI_APIKEY as string;
 if(!OPENAI_APIKEY){
     throw new Error ("OPENAI_APIKEY is not defined in .env")
 }
+export const FLW_PUBLIC_KEY = process.env.FLW_PUBLIC_KEY as string;
+if(!FLW_PUBLIC_KEY){
+    throw new Error ("FLW_PUBLIC_KEY is not defined in .env")
+}
+export const FLW_SECRET_KEY = process.env.FLW_SECRET_KEY as string;
+if(!FLW_SECRET_KEY){
+    throw new Error ("FLW_SECRET_KEY is not defined in .env")
+}
+export const FLW_ENCRYPTION_KEY = process.env.FLW_ENCRYPTION_KEY as string;
+if(!FLW_ENCRYPTION_KEY){
+    throw new Error ("FLW_ENCRYPTION_KEY is not defined in .env")
+}
+
 

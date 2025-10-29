@@ -1,57 +1,79 @@
 import mongoose, { Document, Schema } from "mongoose";
 
-interface UserDocument extends Document{
+interface UserDocument extends Document {
     name: string,
     email: string,
     password: string
-    trialCount:number
-    isPaidUser:boolean
-    passwordResetTokenHash?:string
-    passwordResetExpiresAt?:Date
-    passwordChangedAt :Date
+    trialCount: number
+    isPaidUser: boolean
+    passwordResetTokenHash?: string
+    passwordResetExpiresAt?: Date
+    passwordChangedAt: Date
     passwordHistory: Array<{
         hash: string,
         changedAt: Date
     }>
+    plan?: string; // e.g. "monthly", "student", "free"
+    subscriptionId?: string; // from Flutterwave, Paystack, or Stripe
+    subscriptionStartDate?: Date;
+    subscriptionEndDate?: Date; // auto-renew date
+    autoRenew?: boolean; // helps track recurring billing
+
 }
 const UserSchema = new Schema<UserDocument>({
-    name:{
-        type:String,
+    name: {
+        type: String,
         required: true
     },
-    email:{
-        required:true,
+    email: {
+        required: true,
         unique: true,
         type: String
     },
     password: {
         required: true,
-        type:String
+        type: String
     },
-    trialCount:{
-        default:0,
-        type:Number
+    trialCount: {
+        default: 0,
+        type: Number
     },
-    isPaidUser:{
-        type:Boolean,
-        default:false
+    isPaidUser: {
+        type: Boolean,
+        default: false
     },
-    passwordResetTokenHash:{
-        type:String
+    passwordResetTokenHash: {
+        type: String
     },
-    passwordResetExpiresAt:{
-        type:Date,
+    passwordResetExpiresAt: {
+        type: Date,
         default: undefined,
     },
-    passwordChangedAt:{
-        type:Date,
+    passwordChangedAt: {
+        type: Date,
     },
     passwordHistory: [
-  {
-    hash: String,
-    changedAt: Date
-  }
-]
-}, {timestamps:true})
+        {
+            hash: String,
+            changedAt: Date
+        }
+    ],
+    plan:{
+        type: String
+    },
+    subscriptionId:{
+        type: String
+    },
+    subscriptionStartDate:{
+        type :Date
+    },
+    subscriptionEndDate:{
+        type :Date
+    },
+    autoRenew:{
+        type:Boolean,
+        default:true
+    }
+}, { timestamps: true })
 
-export const User = mongoose.model<UserDocument>('user',UserSchema)
+export const User = mongoose.model<UserDocument>('user', UserSchema)

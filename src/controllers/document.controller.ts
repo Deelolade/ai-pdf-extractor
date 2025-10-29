@@ -8,7 +8,6 @@ import { User } from "../models/user.model";
 import { Upload } from "../models/upload.model";
 import { MAX_TRIALS } from "../utils/env";
 import { deleteFromR2 } from "../utils/r2Delete";
-import { parse } from "path";
 
 export const uploadPdf = async (req: RequestWithFile, res: Response, next: NextFunction) => {
   try {
@@ -18,7 +17,6 @@ export const uploadPdf = async (req: RequestWithFile, res: Response, next: NextF
     const { buffer, originalname, mimetype } = req.file;
     const fileUrl = await uploadToR2(buffer, originalname, mimetype);
 
-    console.log("Extracting text...");
     const extractedText = await extractTextFromPdf(fileUrl);
 
     const uploadText = await new Upload({

@@ -1,5 +1,10 @@
 import mongoose, { Document, Schema } from "mongoose";
 
+enum userPlan {
+    MONTHLY= "monthly",
+    STUDENT= "student",
+    FREE= "free"
+}
 interface UserDocument extends Document {
     name: string,
     email: string,
@@ -13,7 +18,7 @@ interface UserDocument extends Document {
         hash: string,
         changedAt: Date
     }>
-    plan?: string; // e.g. "monthly", "student", "free"
+    plan?: userPlan
     subscriptionId?: string; // from Flutterwave, Paystack, or Stripe
     subscriptionStartDate?: Date;
     subscriptionEndDate?: Date; // auto-renew date

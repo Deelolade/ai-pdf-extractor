@@ -1,6 +1,6 @@
 import mongoose, { Document, Schema } from "mongoose";
 
-enum userPlan {
+export enum userPlan {
     MONTHLY= "monthly",
     STUDENT= "student",
     FREE= "free"
@@ -64,7 +64,9 @@ const UserSchema = new Schema<UserDocument>({
         }
     ],
     plan:{
-        type: String
+        type: String,
+        enum: Object.values(userPlan),
+        default: userPlan.FREE
     },
     subscriptionId:{
         type: String

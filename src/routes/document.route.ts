@@ -1,5 +1,5 @@
 import express from "express";
-import { uploadPdf,summarizePdf, getAllMyDocuments, deleteDocument } from "../controllers/document.controller"
+import { uploadPdf,summarizePdf, getAllMyDocuments, deleteDocument, getDocument } from "../controllers/document.controller"
 import multer from "multer";
 import { authenticateUser } from "../middleware/authMiddleware";
 import { converseRateLimiter, createSummaryLimiter, createUploadLimiter, deleteUploadLimiter, getAllUploadsLimiter } from "../utils/rate-limiter";
@@ -99,6 +99,33 @@ documentRouter.post('/summarize/:uploadId',authenticateUser, checkSubscription, 
  *         description: Internal server error (e.g., database failure)
  */
 documentRouter.get('/',authenticateUser,getAllUploadsLimiter, getAllMyDocuments)
+/**
+ * @openapi
+ * /api/document/{uploadId}:
+ *   get:
+ *     summary: Fetch a uploaded document of an authenticated user
+ *     description: Retrieves a PDF uploaded and summary associated with the authenticated user.
+ *     tags:
+ *       - Document
+ *     parameters:
+ *       - in : path
+ *         name: uploadId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description:  The id for text content of the PDF to be summarized
+ *     responses:
+ *       200:
+ *         description: Document fetched successfully
+ *       400:
+ *         description: Bad request (e.g., invalid input)
+ *       404:
+ *         description: User not found
+ *       500:
+ *         description: Internal server error (e.g., database failure)
+ */
+
+documentRouter.get('/:uploadId',authenticateUser,getAllUploadsLimiter, getDocument);
 
 /**
  * @openapi

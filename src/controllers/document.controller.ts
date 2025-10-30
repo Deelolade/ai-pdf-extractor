@@ -118,6 +118,26 @@ export const getAllMyDocuments = async (req: Request, res: Response, next: NextF
     next(errorHandler(500, "failed to get uploads"))
   }
 }
+export const getDocument = async (req: Request, res: Response, next: NextFunction) =>{
+  try {
+    const { uploadId } = req.params;
+    if(!uploadId){
+    return next(errorHandler(400, "Document not found"))
+  } 
+    const user = req.user?.id;
+  if(!user){
+    return next(errorHandler(400, "User not found"))
+  } 
+  const document = await Upload.findById(uploadId)
+  res.status(200).json({
+    success: true,
+    document
+  })
+  } catch (error) {
+    console.log(error)
+    next(errorHandler(500, "failed to get uploads"))
+  }
+}
 export const deleteDocument = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { id } = req.params;

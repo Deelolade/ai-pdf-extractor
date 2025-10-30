@@ -6,7 +6,7 @@ import { User, userPlan } from "../models/user.model";
 export const checkSubscription = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const userId = req.user?.id;
-        console.log(req)
+        // console.log(req)
         if (!userId) {
             return next(errorHandler(401, "Unauthorized: User ID missing"));
         }
@@ -21,8 +21,6 @@ export const checkSubscription = async (req: Request, res: Response, next: NextF
             if (user.trialCount >= MAX_TRIALS) {
                 return next(errorHandler(403, "Trial limit reached. Please upgrade to a paid account."));
             }
-            user.trialCount += 1;
-            await user.save();
         } else {
             if (!user.subscriptionEndDate || user.subscriptionEndDate < now) {
                 user.isPaidUser = false;
@@ -31,6 +29,7 @@ export const checkSubscription = async (req: Request, res: Response, next: NextF
                 return next(errorHandler(403, "Your subscription has expired. Please renew to continue."));
             }
         }
+        req.user = user;
         next();
     } catch (error) {
         console.error("Error in checkSubscription:", error);

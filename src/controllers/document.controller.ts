@@ -14,6 +14,10 @@ export const uploadPdf = async (req: RequestWithFile, res: Response, next: NextF
     if (!req.file) {
       return next(errorHandler(400, "No file uploaded"));
     }
+    const user = await User.findById(req.user?.id);
+    if (!user) {
+      return next(errorHandler(404, "User not found"));
+    }
     const { buffer, originalname, mimetype } = req.file;
     const fileUrl = await uploadToR2(buffer, originalname, mimetype);
 
@@ -27,6 +31,14 @@ export const uploadPdf = async (req: RequestWithFile, res: Response, next: NextF
       wordCount: extractedText.split(' ').length,
     });
     await uploadText.save()
+    if (!user.isPaidUser) {
+      if (user.trialCount >= MAX_TRIALS) {
+        return next(errorHandler(403, "Trial limit reached. Please upgrade to a paid account."));
+      }
+
+      user.trialCount += 1;
+      await user.save()
+    }
     res.status(200).json({
       message: "File uploaded and text extracted successfully",
       fileUrl,
@@ -51,11 +63,28 @@ export const summarizePdf = async (req: Request, res: Response, next: NextFuncti
     if (!uploadRecord) {
       return next(errorHandler(404, "Upload record not found"));
     }
+
+    const user = await User.findById(req.user?.id);
+    if (!user) {
+      return next(errorHandler(404, "User not found"));
+    }
+
     const summary = await summarizeFullPdf(uploadRecord.textExtracted);
+    if (!summary) {
+      return next(errorHandler(500, "Failed to generate summary"));
+    }
 
     uploadRecord.summary = summary || "";
     await uploadRecord.save();
-    
+
+    if (!user.isPaidUser) {
+      if (user.trialCount >= MAX_TRIALS) {
+        return next(errorHandler(403, "Trial limit reached. Please upgrade to a paid account."));
+      }
+
+      user.trialCount += 1;
+      await user.save()
+    }
     res.status(200).json({
       message: "PDF summarized successfully",
       summary,
@@ -68,13 +97,13 @@ export const getAllMyDocuments = async (req: Request, res: Response, next: NextF
   try {
     const userId = req.user?.id;
     const page = parseInt(req.query.page as string) || 1;
-    const limit = parseInt (req.query.limit as string) || 10;
+    const limit = parseInt(req.query.limit as string) || 10;
 
     const skip = (page - 1) * limit;
 
-    const allDocuments = await Upload.find({userId}).sort({ createdAt: -1 }).skip(skip).limit(limit);
+    const allDocuments = await Upload.find({ userId }).sort({ createdAt: -1 }).skip(skip).limit(limit);
 
-    const totalDocuments = await Upload.countDocuments({userId});
+    const totalDocuments = await Upload.countDocuments({ userId });
 
     const totalPages = Math.ceil(totalDocuments / limit)
     res.status(201).json({
@@ -93,7 +122,7 @@ export const deleteDocument = async (req: Request, res: Response, next: NextFunc
   try {
     const { id } = req.params;
     const userId = req.user?.id;
-    console.log(req.params)
+    // console.log(req.params)
     if (!id) {
       return next(errorHandler(400, "Upload id is required"))
     }

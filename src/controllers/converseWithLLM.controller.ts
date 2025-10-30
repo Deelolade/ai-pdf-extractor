@@ -1,9 +1,10 @@
 import { NextFunction, Request, Response } from "express"
 import { errorHandler } from "../utils/errorHandler"
 import OpenAI from "openai";
-import { apiKey, OPENAI_APIKEY, PINECONE_INDEX } from "../utils/env";
+import { apiKey, MAX_TRIALS, OPENAI_APIKEY, PINECONE_INDEX } from "../utils/env";
 import { Upload } from "../models/upload.model";
 import { pc } from "../utils/pinecone";
+import { User } from "../models/user.model";
 
 const openai = new OpenAI({
     apiKey: apiKey,
@@ -23,6 +24,10 @@ export const converseWithLLM = async (req: Request, res: Response, next: NextFun
         const upload = await Upload.findOne({ _id: uploadId, userId: req.user?.id });
         if(!upload){
             return next(errorHandler(404, "Upload not found !"))
+        }
+        const user = await User.findById(req.user?.id);
+        if (!user) {
+          return next(errorHandler(404, "User not found"));
         }
         // const queryEmbeddings = await openaiEmbed.embeddings.create({
         //     model: "text-embedding-3-small",
@@ -60,11 +65,19 @@ Summary: ${upload?.summary}
         });
         const results = completion.choices[0].message?.content || "No response from LLM";
         const updatedDocuments =  await Upload.findByIdAndUpdate(uploadId, {summary: results}, {new: true});
-
+        if(!user.isPaidUser){
+              if(user.trialCount >= MAX_TRIALS){
+                return next(errorHandler(403, "Trial limit reached. Please upgrade to a paid account."));
+              }
+        
+              user.trialCount += 1;
+              await user.save()
+              console.log("isPaidUser:", user.isPaidUser, "trialCount:", user.trialCount);
+            }
         res.status(200).json({
             success: true,
             message: "Response generated successfully",
-            results,
+            // results,
             updatedDocuments:updatedDocuments?.summary
         })
     } catch (error) {

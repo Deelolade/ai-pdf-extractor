@@ -19,6 +19,7 @@ interface UserDocument extends Document {
         changedAt: Date
     }>
     plan?: userPlan
+    credits: number
     subscriptionId?: string; // from Flutterwave, Paystack, or Stripe
     subscriptionStartDate?: Date;
     subscriptionEndDate?: Date; // auto-renew date
@@ -67,6 +68,10 @@ const UserSchema = new Schema<UserDocument>({
         type: String,
         enum: Object.values(userPlan),
         default: userPlan.FREE
+    },
+    credits:{
+        type: Number,
+        default: 0
     },
     subscriptionId:{
         type: String

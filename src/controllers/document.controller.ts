@@ -43,7 +43,6 @@ export const uploadPdf = async (req: RequestWithFile, res: Response, next: NextF
 export const summarizePdf = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { uploadId } = req.params;
-    console.log(req.params)
     if (!uploadId) {
       return next(errorHandler(400, "Upload Id is required for summarization"));
     }

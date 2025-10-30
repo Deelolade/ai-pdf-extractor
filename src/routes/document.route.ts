@@ -51,7 +51,7 @@ const upload = multer({storage: multer.memoryStorage()});
  *       500:
  *         description: Internal server error (e.g., database failure)
  */
-documentRouter.post('/create',authenticateUser, checkSubscription, createUploadLimiter, upload.single('file'), uploadPdf);
+documentRouter.post('/create',authenticateUser, createUploadLimiter, upload.single('file'), uploadPdf);
 
 /**
  * @openapi
@@ -164,7 +164,7 @@ documentRouter.delete('/:id',authenticateUser, deleteUploadLimiter, deleteDocume
  *       500:
  *         description: Internal server error (e.g., AI or database failure)
  */
-documentRouter.post('/converse/:uploadId', checkSubscription, authenticateUser,converseRateLimiter, converseWithLLM);
+documentRouter.post('/converse/:uploadId', authenticateUser, checkSubscription,converseRateLimiter, converseWithLLM);
 
 
 

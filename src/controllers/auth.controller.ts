@@ -2,7 +2,7 @@ import chalk from "chalk";
 import crypto from "crypto";
 import bcrypt from "bcryptjs";
 import { NextFunction, Request, Response } from "express";
-import { User } from "../models/user.model";
+import { User, userPlan } from "../models/user.model";
 import jwt from "jsonwebtoken";
 import { FRONTEND_URL, JWT_TOKEN } from "../utils/env";
 import { errorHandler } from "../utils/errorHandler";
@@ -29,6 +29,9 @@ export const createUser = async (
             name,
             email,
             password: hashedPassword,
+            ispaidUser: false,
+            trialCount: 0,
+            plan: userPlan.FREE
         });
         const token = jwt.sign(
             {
@@ -66,6 +69,10 @@ export const createUser = async (
                 id: newUser._id,
                 name: newUser.name,
                 email: newUser.email,
+                plan: newUser.plan,
+                isPaidUser: newUser.isPaidUser,
+                trialCount: newUser.trialCount,
+                subscriptionEndDate: newUser.subscriptionEndDate,
             },
             token,
         });
@@ -117,7 +124,15 @@ export const signInUser = async (
         res.status(200).json({
             success: true,
             message: "Signed in successfully",
-            user: { id: validUser._id, name: validUser.name, email: validUser.email },
+            user: {
+                id: validUser._id,
+                name: validUser.name,
+                email: validUser.email,
+                plan: validUser.plan,
+                isPaidUser: validUser.isPaidUser,
+                trialCount: validUser.trialCount,
+                subscriptionEndDate: validUser.subscriptionEndDate,
+            },
             token,
         });
     } catch (error) {

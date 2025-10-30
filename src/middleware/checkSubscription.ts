@@ -5,8 +5,13 @@ import { User, userPlan } from "../models/user.model";
 
 export const checkSubscription = async (req: Request, res: Response, next: NextFunction) => {
     try {
+        const userId = req.user?.id;
+        console.log(req)
+        if (!userId) {
+            return next(errorHandler(401, "Unauthorized: User ID missing"));
+        }
         const now = new Date();
-        const user = await User.findById(req.user?.id);
+        const user = await User.findById(userId);
         
         if (!user) {
             return next(errorHandler(404, "User not found"));

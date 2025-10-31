@@ -7,6 +7,7 @@ import { documentRouter } from "./routes/document.route";
 import { setupSwagger } from "./utils/swagger";
 import cors from "cors";
 import { FRONTEND_URL } from "./utils/env";
+import { paymentRouter } from "./routes/payment.route";
 
 const app = express();
 app.use(express.json())
@@ -24,6 +25,7 @@ app.use(cors(corsConfig))
 
 app.use('/api/auth', userRouter)
 app.use('/api/document', documentRouter)
+app.use('/api/payments', paymentRouter)
 app.get('/', async (req: Request, res: Response): Promise<void> => {
   try {
     res.send(`welcome to the best pdf extractor !!`)

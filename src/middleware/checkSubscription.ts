@@ -37,7 +37,7 @@ export const checkSubscription = async (req: Request, res: Response, next: NextF
                 return next(errorHandler(403, "Insufficient credits. Please top up your account."));
             }
 
-            user.credits = currentCredits -1 ;
+            user.credits = currentCredits - 1 ;
             await user.save();
         }
         req.user = user;

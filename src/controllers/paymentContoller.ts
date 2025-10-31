@@ -27,6 +27,7 @@ export const initiatePayments = async ( req: Request, res: Response, next: NextF
             //     title: "PDF Extractor Pro",
             //     description: "Payment for PDF Extractor Pro Subscription"
             // }
+            
         }
         console.log(payload)
         const response = await  flw.PaymentPlan.create(payload);

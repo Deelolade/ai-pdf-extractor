@@ -11,7 +11,6 @@ import { paymentRouter } from "./routes/payment.route";
 
 const app = express();
 app.use(express.json())
-app.use(globalErrorHandler)
 const PORT = 5000;
 connectDb()
 setupSwagger(app);
@@ -34,6 +33,8 @@ app.get('/', async (req: Request, res: Response): Promise<void> => {
     res.status(500).send('server error')
   }
 })
+
+app.use(globalErrorHandler)
 app.listen(PORT, () => {
   console.log(chalk.blue(`app running on  localhost:${PORT}`))
 })

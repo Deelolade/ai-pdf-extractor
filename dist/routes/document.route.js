@@ -1,0 +1,193 @@
+"use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.documentRouter = void 0;
+const express_1 = __importDefault(require("express"));
+const document_controller_1 = require("../controllers/document.controller");
+const multer_1 = __importDefault(require("multer"));
+const authMiddleware_1 = require("../middleware/authMiddleware");
+const rate_limiter_1 = require("../utils/rate-limiter");
+const converseWithLLM_controller_1 = require("../controllers/converseWithLLM.controller");
+const checkSubscription_1 = require("../middleware/checkSubscription");
+exports.documentRouter = express_1.default.Router();
+const upload = (0, multer_1.default)({ storage: multer_1.default.memoryStorage() });
+/**
+ * @openapi
+ * /api/document/create:
+ *   post:
+ *     summary: Upload a PDF file and extract text
+ *     description: Uploads a PDF file, extracts its text, and returns the extracted content.
+ *     tags:
+ *       - Document
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         multipart/form-data:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - file
+ *             properties:
+ *               file:
+ *                 type: string
+ *                 format: binary
+ *                 description: The PDF file to be uploaded
+ *     responses:
+ *       200:
+ *         description: File uploaded and text extracted successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: File uploaded and text extracted successfully
+ *                 text:
+ *                   type: string
+ *                   example: "This is the extracted text from the PDF."
+ *       400:
+ *         description: Upload Id is required for summarization
+ *       404:
+ *         description: User not found
+ *       500:
+ *         description: Internal server error (e.g., database failure)
+ */
+exports.documentRouter.post('/create', authMiddleware_1.authenticateUser, rate_limiter_1.createUploadLimiter, upload.single('file'), document_controller_1.uploadPdf);
+/**
+ * @openapi
+ * /api/document/summarize/{uploadId}:
+ *   post:
+ *     summary: Summarize text into concise form using AI
+ *     description: Summarize text to be easily readable.
+ *     tags:
+ *       - Document
+ *     parameters:
+ *       - in : path
+ *         name: uploadId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description:  The id for text content of the PDF to be summarized
+ *     responses:
+ *       200:
+ *         description: PDF summarized successfully
+ *       400:
+ *         description: Bad request (e.g., invalid input)
+ *       404:
+ *         description: User not found
+ *       500:
+ *         description: Internal server error (e.g., database failure)
+ */
+exports.documentRouter.post('/summarize/:uploadId', authMiddleware_1.authenticateUser, checkSubscription_1.checkSubscription, rate_limiter_1.createSummaryLimiter, document_controller_1.summarizePdf);
+/**
+ * @openapi
+ * /api/document/:
+ *   get:
+ *     summary: Fetch all uploads of the authenticated user
+ *     description: Retrieves all PDF uploads and summaries associated with the authenticated user.
+ *     tags:
+ *       - Document
+ *     responses:
+ *       200:
+ *         description: Uploads fetched successfully
+ *       400:
+ *         description: Bad request (e.g., invalid input)
+ *       404:
+ *         description: User not found
+ *       500:
+ *         description: Internal server error (e.g., database failure)
+ */
+exports.documentRouter.get('/', authMiddleware_1.authenticateUser, rate_limiter_1.getAllUploadsLimiter, document_controller_1.getAllMyDocuments);
+/**
+ * @openapi
+ * /api/document/{uploadId}:
+ *   get:
+ *     summary: Fetch a uploaded document of an authenticated user
+ *     description: Retrieves a PDF uploaded and summary associated with the authenticated user.
+ *     tags:
+ *       - Document
+ *     parameters:
+ *       - in : path
+ *         name: uploadId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description:  The id for text content of the PDF to be summarized
+ *     responses:
+ *       200:
+ *         description: Document fetched successfully
+ *       400:
+ *         description: Bad request (e.g., invalid input)
+ *       404:
+ *         description: User not found
+ *       500:
+ *         description: Internal server error (e.g., database failure)
+ */
+exports.documentRouter.get('/:uploadId', authMiddleware_1.authenticateUser, rate_limiter_1.getAllUploadsLimiter, document_controller_1.getDocument);
+/**
+ * @openapi
+ * /api/document/{id}:
+ *   delete:
+ *     summary: Delete upload of the authenticated user
+ *     description: Delete uploaded document of an authenticated user.
+ *     tags:
+ *       - Document
+ *     parameters:
+ *       - in : path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The id to delete the upload
+ *     responses:
+ *       200:
+ *         description: Upload have been deleted successfully !!
+ *       400:
+ *         description: Bad request (e.g., invalid input)
+ *       404:
+ *         description: Upload not found or unauthorized
+ *       500:
+ *         description: Internal server error (e.g., database failure)
+ */
+exports.documentRouter.delete('/:id', authMiddleware_1.authenticateUser, rate_limiter_1.deleteUploadLimiter, document_controller_1.deleteDocument);
+/**
+ * @openapi
+ * /api/document/converse/{uploadId}:
+ *   post:
+ *     summary: Hold conversations with the LLM to know more details about a document
+ *     description: Send a message to the LLM to ask questions or request insights about the uploaded document.
+ *     tags:
+ *       - Document
+ *     parameters:
+ *       - in: path
+ *         name: uploadId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The ID of the document to converse about
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - message
+ *             properties:
+ *               message:
+ *                 type: string
+ *                 description: The user's message or question to the LLM
+ *     responses:
+ *       200:
+ *         description: Response generated successfully
+ *       400:
+ *         description: Bad request (e.g., invalid input)
+ *       404:
+ *         description: Document not found or unauthorized
+ *       500:
+ *         description: Internal server error (e.g., AI or database failure)
+ */
+exports.documentRouter.post('/converse/:uploadId', authMiddleware_1.authenticateUser, checkSubscription_1.checkSubscription, rate_limiter_1.converseRateLimiter, converseWithLLM_controller_1.converseWithLLM);

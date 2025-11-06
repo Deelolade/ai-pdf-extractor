@@ -8,15 +8,17 @@ import { setupSwagger } from "./utils/swagger";
 import cors from "cors";
 import { FRONTEND_URL } from "./utils/env";
 import { paymentRouter } from "./routes/payment.route";
+import cookieParser from "cookie-parser"
 
 const app = express();
 app.use(express.json())
+app.use(cookieParser())
 const PORT = 5000;
 connectDb()
 setupSwagger(app);
 
 const corsConfig = {
-  origin: FRONTEND_URL || "*",
+  origin: FRONTEND_URL || "http://localhost:3000",
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
   allowedHeaders: ['Content-Type', 'Authorization'],
 }

@@ -89,5 +89,8 @@ export const FLW_ENCRYPTION_KEY = process.env.FLW_ENCRYPTION_KEY as string;
 if(!FLW_ENCRYPTION_KEY){
     throw new Error ("FLW_ENCRYPTION_KEY is not defined in .env")
 }
-
+export const NODE_ENV = process.env.NODE_ENV as string;
+if(!NODE_ENV){
+    throw new Error ("NODE_ENV is not defined in .env")
+}
 

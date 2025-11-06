@@ -121,6 +121,12 @@ export const signInUser = async (
   `
         );
 
+        res.cookie("access_token", token, {
+            httpOnly: true,
+            sameSite: "strict",
+            secure: process.env.NODE_ENV === "production",
+            maxAge: 15* 60 * 1000
+        })
         res.status(200).json({
             success: true,
             message: "Signed in successfully",
@@ -133,7 +139,6 @@ export const signInUser = async (
                 trialCount: validUser.trialCount,
                 subscriptionEndDate: validUser.subscriptionEndDate,
             },
-            token,
         });
     } catch (error) {
         console.log(error);

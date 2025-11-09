@@ -1,8 +1,45 @@
 import express from 'express'
-import { createUser, forgetPassword, resetPassword, signInUser } from '../controllers/auth.controller'
+import { createUser, forgetPassword, getUserData, resetPassword, signInUser } from '../controllers/auth.controller'
 import { forgotPasswordLimiter, loginLimiter, passwordResetLimiter, registerLimiter } from '../utils/rate-limiter'
+import { authenticateUser } from '../middleware/authMiddleware'
 
 export const userRouter = express.Router()
+
+/**
+ * @openapi
+ * /api/auth/me:
+ *   get:
+ *     summary: Get the currently authenticated user
+ *     tags:
+ *       - Authentication
+ *     security:
+ *       - cookieAuth: []   # or whatever auth scheme you use (JWT, cookie, etc.)
+ *     responses:
+ *       200:
+ *         description: Successfully retrieved user
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 id:
+ *                   type: string
+ *                 name:
+ *                   type: string
+ *                 email:
+ *                   type: string
+ *                   format: email
+ *                 isPaid:
+ *                   type: boolean
+ *                 trialCount:
+ *                   type: integer
+ *       401:
+ *         description: Unauthorized (user not logged in)
+ *       500:
+ *         description: Internal server error
+ */
+
+userRouter.get('/me',authenticateUser, loginLimiter,getUserData)
 /**
  * @openapi
  * /api/auth/register:

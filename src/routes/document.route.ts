@@ -51,7 +51,7 @@ const upload = multer({storage: multer.memoryStorage()});
  *       500:
  *         description: Internal server error (e.g., database failure)
  */
-documentRouter.post('/create',authenticateUser, createUploadLimiter, upload.single('file'), uploadPdf);
+documentRouter.post('/create',authenticateUser, createUploadLimiter, upload.single('document'), uploadPdf);
 
 /**
  * @openapi

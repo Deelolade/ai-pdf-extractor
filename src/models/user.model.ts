@@ -5,7 +5,7 @@ export enum userPlan {
     STUDENT= "student",
     FREE= "free"
 }
-interface UserDocument extends Document {
+export interface UserDocument extends Document {
     name: string,
     email: string,
     password: string

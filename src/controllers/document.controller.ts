@@ -48,7 +48,7 @@ export const uploadPdf = async (req: RequestWithFile, res: Response, next: NextF
     });
   } catch (error) {
     console.error("Upload error:", error);
-    next(errorHandler(500, "filed to upload pdf"))
+    next(errorHandler(500, "filed to upload document"))
   }
 }
 
@@ -56,12 +56,12 @@ export const summarizePdf = async (req: Request, res: Response, next: NextFuncti
   try {
     const { uploadId } = req.params;
     if (!uploadId) {
-      return next(errorHandler(400, "Upload Id is required for summarization"));
+      return next(errorHandler(400, "Document Id is required for summarization"));
     }
 
     const uploadRecord = await Upload.findById(uploadId);
     if (!uploadRecord) {
-      return next(errorHandler(404, "Upload record not found"));
+      return next(errorHandler(404, "Document record not found"));
     }
 
     const user = await User.findById(req.user?.id);
@@ -86,11 +86,11 @@ export const summarizePdf = async (req: Request, res: Response, next: NextFuncti
       await user.save()
     }
     res.status(200).json({
-      message: "PDF summarized successfully",
+      message: "Document summarized successfully",
       summary,
     });
   } catch (error) {
-    next(errorHandler(500, "failed to summarize pdf"))
+    next(errorHandler(500, "failed to summarize Document"))
   }
 }
 export const getAllMyDocuments = async (req: Request, res: Response, next: NextFunction) => {
@@ -115,7 +115,7 @@ export const getAllMyDocuments = async (req: Request, res: Response, next: NextF
       currentPage: page,
     })
   } catch (error) {
-    next(errorHandler(500, "failed to get uploads"))
+    next(errorHandler(500, "failed to get documents"))
   }
 }
 export const getDocument = async (req: Request, res: Response, next: NextFunction) =>{
@@ -135,7 +135,7 @@ export const getDocument = async (req: Request, res: Response, next: NextFunctio
   })
   } catch (error) {
     console.log(error)
-    next(errorHandler(500, "failed to get uploads"))
+    next(errorHandler(500, "failed to get document"))
   }
 }
 export const deleteDocument = async (req: Request, res: Response, next: NextFunction) => {
@@ -149,7 +149,7 @@ export const deleteDocument = async (req: Request, res: Response, next: NextFunc
     const findUpload = await Upload.findOne({ _id: id, userId })
 
     if (!findUpload) {
-      return next(errorHandler(404, "Upload not found or unauthorized "))
+      return next(errorHandler(404, "Document not found or unauthorized "))
     }
     const filename = findUpload.fileName
     await deleteFromR2(filename)
@@ -157,10 +157,10 @@ export const deleteDocument = async (req: Request, res: Response, next: NextFunc
     await Upload.findByIdAndDelete(id)
     res.status(200).json({
       success: true,
-      message: "Upload have been deleted successfully !!"
+      message: "Document have been deleted successfully !!"
     })
   } catch (error) {
     console.log(error)
-    next(errorHandler(500, "Failed to delete upload"))
+    next(errorHandler(500, "Failed to delete document"))
   }
 }

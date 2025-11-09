@@ -8,6 +8,25 @@ import { FRONTEND_URL, JWT_TOKEN } from "../utils/env";
 import { errorHandler } from "../utils/errorHandler";
 import { sendEmail } from "../utils/sendEmail";
 
+
+export const getUserData = async (req: Request,
+    res: Response, next: NextFunction):Promise<void> => {
+    try {
+        if (!req.user?.id) {
+            res.status(401).json({ success: false, message: 'Unauthorized' });
+            return;
+        }
+
+        const user = await User.findById(req.user?.id).select('-password').select('-passwordHistory')
+        console.log(user)
+        res.status(200).json({
+            success: true,
+            user
+        })
+    } catch (error) {
+        next(errorHandler(500, "Failed to fetch user "))
+    }
+}
 export const createUser = async (
     req: Request,
     res: Response,
@@ -125,7 +144,7 @@ export const signInUser = async (
             httpOnly: true,
             sameSite: "strict",
             secure: process.env.NODE_ENV === "production",
-            maxAge: 15* 60 * 1000
+            maxAge: 24 * 60 * 60 * 1000
         })
         res.status(200).json({
             success: true,

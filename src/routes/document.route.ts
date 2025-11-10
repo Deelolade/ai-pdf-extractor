@@ -2,7 +2,7 @@ import express from "express";
 import { uploadPdf,summarizePdf, getAllMyDocuments, deleteDocument, getDocument, updateDocument } from "../controllers/document.controller"
 import multer from "multer";
 import { authenticateUser } from "../middleware/authMiddleware";
-import { converseRateLimiter, createSummaryLimiter, createUploadLimiter, deleteUploadLimiter, getAllUploadsLimiter } from "../utils/rate-limiter";
+import { converseRateLimiter, createSummaryLimiter, createUploadLimiter, deleteUploadLimiter, getAllUploadsLimiter, updateDocumentLimiter } from "../utils/rate-limiter";
 import { converseWithLLM } from "../controllers/converseWithLLM.controller";
 import { checkSubscription } from "../middleware/checkSubscription";
 
@@ -233,6 +233,6 @@ documentRouter.post('/converse/:uploadId', authenticateUser, checkSubscription,c
  *         description: Internal server error
  */
 
-documentRouter.patch('/update/:id',authenticateUser,getAllUploadsLimiter, updateDocument)
+documentRouter.patch('/update/:id',authenticateUser,updateDocumentLimiter, updateDocument)
 
 

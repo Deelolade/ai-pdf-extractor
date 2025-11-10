@@ -81,3 +81,11 @@ export const converseRateLimiter = rateLimit({
   legacyHeaders: false,
   ipv6Subnet: 56,
 });
+export const updateDocumentLimiter = rateLimit({
+  windowMs: 10 * 60 * 1000,
+  limit: 5, 
+  message: "Too many update requests. Please try again later.",
+  standardHeaders: true,
+  legacyHeaders: false,
+  ipv6Subnet: 56,
+});

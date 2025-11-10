@@ -118,24 +118,60 @@ export const getAllMyDocuments = async (req: Request, res: Response, next: NextF
     next(errorHandler(500, "failed to get documents"))
   }
 }
-export const getDocument = async (req: Request, res: Response, next: NextFunction) =>{
+export const getDocument = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { uploadId } = req.params;
-    if(!uploadId){
-    return next(errorHandler(400, "Document not found"))
-  } 
+    if (!uploadId) {
+      return next(errorHandler(400, "Document not found"))
+    }
     const user = req.user?.id;
-  if(!user){
-    return next(errorHandler(400, "User not found"))
-  } 
-  const document = await Upload.findById(uploadId)
-  res.status(200).json({
-    success: true,
-    document
-  })
+    if (!user) {
+      return next(errorHandler(400, "User not found"))
+    }
+    const document = await Upload.findById(uploadId)
+    res.status(200).json({
+      success: true,
+      document
+    })
   } catch (error) {
     console.log(error)
     next(errorHandler(500, "failed to get document"))
+  }
+}
+export const updateDocument = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { fileName } = req.body
+    const { id } = req.params;
+    const userId = req.user?.id;
+    // console.log(req.params)
+    if (!id) {
+      return next(errorHandler(400, "Upload id is required"))
+    }
+
+    if (!fileName || typeof fileName !== 'string') {
+      return next(errorHandler(400, "A valid fileName is required"));
+    }
+
+
+    const findUpload = await Upload.findOne({ _id: id, userId })
+
+    if (!findUpload) {
+      return next(errorHandler(404, "Document not found or unauthorized "))
+    }
+
+    const updatedDocument = await Upload.findByIdAndUpdate(
+      id,
+      {fileName},
+      {new: true}
+    )
+    res.status(200).json({
+      success: true,
+      message: " Document file name updated successfully!!",
+      document: updatedDocument,
+    })
+  } catch (error) {
+    console.log(error)
+    next(errorHandler(500, "Failed to delete document"))
   }
 }
 export const deleteDocument = async (req: Request, res: Response, next: NextFunction) => {

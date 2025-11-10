@@ -1,5 +1,5 @@
 import express from "express";
-import { uploadPdf,summarizePdf, getAllMyDocuments, deleteDocument, getDocument } from "../controllers/document.controller"
+import { uploadPdf,summarizePdf, getAllMyDocuments, deleteDocument, getDocument, updateDocument } from "../controllers/document.controller"
 import multer from "multer";
 import { authenticateUser } from "../middleware/authMiddleware";
 import { converseRateLimiter, createSummaryLimiter, createUploadLimiter, deleteUploadLimiter, getAllUploadsLimiter } from "../utils/rate-limiter";
@@ -193,5 +193,46 @@ documentRouter.delete('/:id',authenticateUser, deleteUploadLimiter, deleteDocume
  */
 documentRouter.post('/converse/:uploadId', authenticateUser, checkSubscription,converseRateLimiter, converseWithLLM);
 
+/**
+ * @openapi
+ * /api/document/update/{id}:
+ *   patch:
+ *     summary: Update document file name
+ *     description: Change the name of an uploaded document by its ID.
+ *     tags:
+ *       - Document
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The ID of the document to update
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - fileName
+ *             properties:
+ *               fileName:
+ *                 type: string
+ *                 description: The new name for the document
+ *     responses:
+ *       200:
+ *         description: Document file name updated successfully
+ *       400:
+ *         description: Invalid input or missing file name
+ *       401:
+ *         description: Unauthorized
+ *       404:
+ *         description: Document not found
+ *       500:
+ *         description: Internal server error
+ */
+
+documentRouter.patch('/update/:id',authenticateUser,getAllUploadsLimiter, updateDocument)
 
 

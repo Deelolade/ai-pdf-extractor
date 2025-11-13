@@ -25,7 +25,7 @@ export const converseWithLLM = async (req: Request, res: Response, next: NextFun
         }
         const upload = await Upload.findOne({ _id: uploadId, userId: req.user?.id });
         if (!upload) {
-            return next(errorHandler(404, "Upload not found !"))
+            return next(errorHandler(404, "Document not found !"))
         }
         const user = await User.findById(req.user?.id);
         if (!user) {
@@ -59,8 +59,7 @@ export const converseWithLLM = async (req: Request, res: Response, next: NextFun
         if (!embeddings) {
             return next(errorHandler(500, "Failed to generate embeddings"));
         }
-        const vector = embeddings
-
+        const vector = embeddings;
 
         const searchResults = await index.query({
             topK: 5,
@@ -87,8 +86,8 @@ Relevant Chunks:\n${contextText}
         });
         const results = completion.choices[0].message?.content || "No response from LLM";
         // const updatedDocuments = await Upload.findByIdAndUpdate(uploadId, { summary: results }, { new: true });
-        // Upload.wordCount = message.split(' ').length
-        // await
+        // upload.wordCount = message.split(' ').length
+        // await upload.save()
         res.status(200).json({
             success: true,
             message: "Response generated successfully",

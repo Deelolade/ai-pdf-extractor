@@ -15,7 +15,8 @@ const openai = new OpenAI({
 const openaiEmbed = new OpenAI({
     apiKey: OPENAI_APIKEY
 })
-const geminiEmbed = new GoogleGenAI({})
+const geminiEmbed = new GoogleGenAI({});
+
 export const converseWithLLM = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const { uploadId } = req.params;
@@ -61,13 +62,21 @@ export const converseWithLLM = async (req: Request, res: Response, next: NextFun
         }
         const vector = embeddings;
 
-        const searchResults = await index.query({
-            topK: 5,
+        const test = await index.query({
             vector,
-            includeMetadata: true,
-            filter: { fileId: uploadId.toString() }
-        })
+            topK: 10,
+            includeMetadata: true
+        });
 
+        console.log(JSON.stringify(test.matches, null, 2));
+
+        const searchResults = await index.query({
+            vector,
+            topK: 5,
+            includeMetadata: true,
+            filter: { fileId: uploadId }
+        })
+        console.log(searchResults)
         const contextText = searchResults.matches
             .map((m) => m.metadata?.text).join("\n\n")
         const systemPrompt = `

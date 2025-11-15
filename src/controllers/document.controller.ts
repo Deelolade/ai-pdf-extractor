@@ -6,21 +6,36 @@ import { uploadToR2 } from "../utils/r2Upload";
 import { summarizeFullPdf } from "../utils/summarizeFullPdf";
 import { User } from "../models/user.model";
 import { Upload } from "../models/upload.model";
-import { MAX_TRIALS } from "../utils/env";
+import { MAX_TRIALS, PINECONE_INDEX } from "../utils/env";
 import { deleteFromR2 } from "../utils/r2Delete";
+import { chunkText } from "../utils/chunkText";
+import { GoogleGenAI } from "@google/genai";
+import { pc } from "../utils/pinecone";
+
+const geminiEmbed = new GoogleGenAI({})
 
 export const uploadPdf = async (req: RequestWithFile, res: Response, next: NextFunction) => {
   try {
     if (!req.file) {
       return next(errorHandler(400, "No file uploaded"));
     }
+    console.log(req.file)
     const user = await User.findById(req.user?.id);
     if (!user) {
       return next(errorHandler(404, "User not found"));
     }
+    // IF USER IS A PAID USER
+    if (!user.isPaidUser) {
+      if (user.trialCount >= MAX_TRIALS) {
+        return next(errorHandler(403, "Trial limit reached. Please upgrade to a paid account."));
+      }
+    }
+
+    // EXTRACT AND UPLOAD DOCUMENTS TO CLOUDFLARE
     const { buffer, originalname, mimetype } = req.file;
     const fileUrl = await uploadToR2(buffer, originalname, mimetype);
 
+    // EXTRACT FROM UPLOADED DOCUMENTS 
     const extractedText = await extractTextFromPdf(fileUrl);
 
     const uploadText = await new Upload({
@@ -28,14 +43,44 @@ export const uploadPdf = async (req: RequestWithFile, res: Response, next: NextF
       textExtracted: extractedText,
       fileName: originalname,
       fileUrl,
-      wordCount: extractedText.split(' ').length,
+      wordCount: extractedText.trim().split(/\s+/).length,
     });
-    await uploadText.save()
-    if (!user.isPaidUser) {
-      if (user.trialCount >= MAX_TRIALS) {
-        return next(errorHandler(403, "Trial limit reached. Please upgrade to a paid account."));
-      }
+    await uploadText.save();
 
+    // UPLOAD DOC TO VECTOR DATABASE
+    const chunks = chunkText(extractedText);
+
+
+    const embeddings = await Promise.all(
+      chunks.map(async (chunk) =>{
+        const embed = await geminiEmbed.models.embedContent({
+            model: "models/embedding-001",
+            contents: [
+              {
+                parts: [{ text: chunk}]
+              }
+            ]
+        })
+        return embed?.embeddings?.[0]?.values ?? [];
+      })
+    )
+    const index = pc.index(PINECONE_INDEX);
+
+  const vectors = embeddings.map((values, i) => ({
+  id: `${uploadText._id}-${i}`,
+  values,
+  metadata: {
+    fileId: uploadText._id.toString(),
+    chunkIndex: i,
+    text: chunks[i],
+  },
+}));
+
+await index.upsert(vectors);
+
+
+    // INCREASE USER TRIAL COUNT FOR FREE USERS 
+    if (!user.isPaidUser) {
       user.trialCount += 1;
       await user.save()
     }
@@ -68,7 +113,12 @@ export const summarizePdf = async (req: Request, res: Response, next: NextFuncti
     if (!user) {
       return next(errorHandler(404, "User not found"));
     }
-
+    // IF USER IS A PAID USER
+    if (!user.isPaidUser) {
+      if (user.trialCount >= MAX_TRIALS) {
+        return next(errorHandler(403, "Trial limit reached. Please upgrade to a paid account."));
+      }
+    }
     const summary = await summarizeFullPdf(uploadRecord.textExtracted);
     if (!summary) {
       return next(errorHandler(500, "Failed to generate summary"));
@@ -77,11 +127,8 @@ export const summarizePdf = async (req: Request, res: Response, next: NextFuncti
     uploadRecord.summary = summary || "";
     await uploadRecord.save();
 
+    // INCREASE USER TRIAL COUNT FOR FREE USERS 
     if (!user.isPaidUser) {
-      if (user.trialCount >= MAX_TRIALS) {
-        return next(errorHandler(403, "Trial limit reached. Please upgrade to a paid account."));
-      }
-
       user.trialCount += 1;
       await user.save()
     }
@@ -161,8 +208,8 @@ export const updateDocument = async (req: Request, res: Response, next: NextFunc
 
     const updatedDocument = await Upload.findByIdAndUpdate(
       id,
-      {fileName},
-      {new: true}
+      { fileName },
+      { new: true }
     )
     res.status(200).json({
       success: true,

@@ -43,48 +43,13 @@ export const converseWithLLM = async (req: Request, res: Response, next: NextFun
             console.log("isPaidUser:", user.isPaidUser, "trialCount:", user.trialCount);
         }
 
-        const responseEmbeddings = await geminiEmbed.models.embedContent({
-            model: "gemini-embedding-001",
-            contents: message
-        })
-
-        const index = pc.index(PINECONE_INDEX);
-
-        if (!responseEmbeddings.embeddings) {
-            return next(errorHandler(500, "Failed to generate embeddings"))
-        }
-        if (!responseEmbeddings.embeddings?.length) {
-            return next(errorHandler(500, "Embedding array empty"));
-        }
-        const embeddings = responseEmbeddings.embeddings[0].values;
-        if (!embeddings) {
-            return next(errorHandler(500, "Failed to generate embeddings"));
-        }
-        const vector = embeddings;
-
-        const test = await index.query({
-            vector,
-            topK: 10,
-            includeMetadata: true
-        });
-
-        console.log(JSON.stringify(test.matches, null, 2));
-
-        const searchResults = await index.query({
-            vector,
-            topK: 5,
-            includeMetadata: true,
-            filter: { fileId: uploadId }
-        })
-        console.log(searchResults)
-        const contextText = searchResults.matches
-            .map((m) => m.metadata?.text).join("\n\n")
         const systemPrompt = `
-You are an expert summarizer and document assistant.
-Answer based on this document content and previous summary.
-Document Title: ${upload?.fileName}
-Summary: ${upload?.summary}
-Relevant Chunks:\n${contextText}
+You are a helpful assistant. 
+Answer the user's questions based ONLY on the document content below. 
+Do not invent information. 
+
+Document:
+${upload.textExtracted}
 `;
         const completion = await openai.chat.completions.create({
             model: "gpt-4o-mini",
@@ -94,9 +59,7 @@ Relevant Chunks:\n${contextText}
             ]
         });
         const results = completion.choices[0].message?.content || "No response from LLM";
-        // const updatedDocuments = await Upload.findByIdAndUpdate(uploadId, { summary: results }, { new: true });
-        // upload.wordCount = message.split(' ').length
-        // await upload.save()
+
         res.status(200).json({
             success: true,
             message: "Response generated successfully",

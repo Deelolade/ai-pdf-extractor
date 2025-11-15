@@ -46,39 +46,7 @@ export const uploadPdf = async (req: RequestWithFile, res: Response, next: NextF
       wordCount: extractedText.trim().split(/\s+/).length,
     });
     await uploadText.save();
-
-    // UPLOAD DOC TO VECTOR DATABASE
-    const chunks = chunkText(extractedText);
-
-
-    const embeddings = await Promise.all(
-      chunks.map(async (chunk) =>{
-        const embed = await geminiEmbed.models.embedContent({
-            model: "models/embedding-001",
-            contents: [
-              {
-                parts: [{ text: chunk}]
-              }
-            ]
-        })
-        return embed?.embeddings?.[0]?.values ?? [];
-      })
-    )
-    const index = pc.index(PINECONE_INDEX);
-
-  const vectors = embeddings.map((values, i) => ({
-  id: `${uploadText._id}-${i}`,
-  values,
-  metadata: {
-    fileId: uploadText._id.toString(),
-    chunkIndex: i,
-    text: chunks[i],
-  },
-}));
-
-await index.upsert(vectors);
-
-
+    
     // INCREASE USER TRIAL COUNT FOR FREE USERS 
     if (!user.isPaidUser) {
       user.trialCount += 1;

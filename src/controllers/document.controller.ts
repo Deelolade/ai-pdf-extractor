@@ -19,7 +19,6 @@ export const uploadPdf = async (req: RequestWithFile, res: Response, next: NextF
     if (!req.file) {
       return next(errorHandler(400, "No file uploaded"));
     }
-    console.log(req.file)
     const user = await User.findById(req.user?.id);
     if (!user) {
       return next(errorHandler(404, "User not found"));
@@ -46,7 +45,7 @@ export const uploadPdf = async (req: RequestWithFile, res: Response, next: NextF
       wordCount: extractedText.trim().split(/\s+/).length,
     });
     await uploadText.save();
-    
+
     // INCREASE USER TRIAL COUNT FOR FREE USERS 
     if (!user.isPaidUser) {
       user.trialCount += 1;

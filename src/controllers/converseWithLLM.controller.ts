@@ -6,6 +6,8 @@ import { Upload } from "../models/upload.model";
 import { pc } from "../utils/pinecone";
 import { User } from "../models/user.model";
 import { GoogleGenAI } from "@google/genai";
+import { Chat, Role } from "../models/chat.model";
+import { Messages } from "openai/resources/chat/completions";
 
 const openai = new OpenAI({
     apiKey: apiKey,
@@ -19,29 +21,32 @@ const geminiEmbed = new GoogleGenAI({});
 
 export const converseWithLLM = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const { uploadId } = req.params;
+        const { documentId } = req.params;
         const { message } = req.body;
-        if (!message || !uploadId) {
-            return next(errorHandler(400, "Message and Upload ID are required"))
+        const userId = req.user?.id;
+        console.log(userId)
+        console.log(documentId, message)
+        if (!message || !documentId) {
+            return next(errorHandler(400, "Message and Document id are required"))
         }
-        const upload = await Upload.findOne({ _id: uploadId, userId: req.user?.id });
+        const upload = await Upload.findOne({ _id: documentId, userId});
         if (!upload) {
             return next(errorHandler(404, "Document not found !"))
         }
-        const user = await User.findById(req.user?.id);
+        const user = await User.findById(userId);
         if (!user) {
             return next(errorHandler(404, "User not found"));
         }
-        if (!user.isPaidUser) {
-            if (user.trialCount >= MAX_TRIALS) {
-                return next(errorHandler(403, "Trial limit reached. Please upgrade to a paid account."));
-            }
+        // if (!user.isPaidUser) {
+        //     if (user.trialCount >= MAX_TRIALS) {
+        //         return next(errorHandler(403, "Trial limit reached. Please upgrade to a paid account."));
+        //     }
 
-            user.trialCount += 1;
-            await user.save()
+        //     user.trialCount += 1;
+        //     await user.save()
 
-            console.log("isPaidUser:", user.isPaidUser, "trialCount:", user.trialCount);
-        }
+        //     console.log("isPaidUser:", user.isPaidUser, "trialCount:", user.trialCount);
+        // }
 
         const systemPrompt = `
 You are a helpful assistant. 
@@ -58,13 +63,35 @@ ${upload.textExtracted}
                 { role: "user", content: message }
             ]
         });
-        const results = completion.choices[0].message?.content || "No response from LLM";
+        const aiReply = completion.choices[0].message?.content || "No response from LLM";
+
+        const UpdatedMessages = [
+            // ...messages,
+            {
+                role: Role.USER,
+                content:message,
+                createdAt: new Date,
+            },
+            {
+                role: Role.ASSISTANT,
+                content:aiReply,
+                createdAt: new Date,
+            }
+        ]
+
+        const newChat = await new Chat({
+            userId,
+            documentId,
+            messages: UpdatedMessages
+        })  
+
+       await newChat.save();
 
         res.status(200).json({
             success: true,
             message: "Response generated successfully",
-            results,
-            // updatedDocuments: updatedDocuments?.summary
+            chat:newChat,
+            reply:aiReply
         })
     } catch (error) {
         console.log(error)

@@ -191,7 +191,7 @@ documentRouter.delete('/:id',authenticateUser, deleteUploadLimiter, deleteDocume
  *       500:
  *         description: Internal server error (e.g., AI or database failure)
  */
-documentRouter.post('/converse/:uploadId', authenticateUser, checkSubscription,converseRateLimiter, converseWithLLM);
+documentRouter.post('/converse/:documentId', authenticateUser, checkSubscription,converseRateLimiter, converseWithLLM);
 
 /**
  * @openapi

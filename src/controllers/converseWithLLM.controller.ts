@@ -65,7 +65,7 @@ ${upload.textExtracted}
         });
         const aiReply = completion.choices[0].message?.content || "No response from LLM";
 
-        const UpdatedMessages = [
+        const newMessages = [
             // ...messages,
             {
                 role: Role.USER,
@@ -79,18 +79,23 @@ ${upload.textExtracted}
             }
         ]
 
-        const newChat = await new Chat({
-            userId,
-            documentId,
-            messages: UpdatedMessages
-        })  
+        let chat = await Chat.findOne({ userId, documentId});
 
-       await newChat.save();
-
+        if(chat){
+            chat.messages.push(...newMessages);
+            await chat.save();
+        }else{
+            chat = await  Chat.create({
+                userId,
+                documentId,
+                messages: newMessages
+            })  
+    
+        }
         res.status(200).json({
             success: true,
             message: "Response generated successfully",
-            chat:newChat,
+            chat,
             reply:aiReply
         })
     } catch (error) {

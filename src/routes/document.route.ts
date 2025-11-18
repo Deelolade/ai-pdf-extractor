@@ -3,7 +3,7 @@ import { uploadPdf,summarizePdf, getAllMyDocuments, deleteDocument, getDocument,
 import multer from "multer";
 import { authenticateUser } from "../middleware/authMiddleware";
 import { converseRateLimiter, createSummaryLimiter, createUploadLimiter, deleteUploadLimiter, getAllUploadsLimiter, updateDocumentLimiter } from "../utils/rate-limiter";
-import { converseWithLLM } from "../controllers/converseWithLLM.controller";
+import { converseWithLLM, getAllChats } from "../controllers/converseWithLLM.controller";
 import { checkSubscription } from "../middleware/checkSubscription";
 
 export const documentRouter =express.Router();
@@ -156,7 +156,7 @@ documentRouter.delete('/:id',authenticateUser, deleteUploadLimiter, deleteDocume
 
 /**
  * @openapi
- * /api/document/converse/{uploadId}:
+ * /api/document/chat/{uploadId}:
  *   post:
  *     summary: Hold conversations with the LLM to know more details about a document
  *     description: Send a message to the LLM to ask questions or request insights about the uploaded document.
@@ -191,7 +191,35 @@ documentRouter.delete('/:id',authenticateUser, deleteUploadLimiter, deleteDocume
  *       500:
  *         description: Internal server error (e.g., AI or database failure)
  */
-documentRouter.post('/converse/:documentId', authenticateUser, checkSubscription,converseRateLimiter, converseWithLLM);
+documentRouter.post('/chat/:documentId', authenticateUser, checkSubscription,converseRateLimiter, converseWithLLM);
+
+/**
+ * @openapi
+ * /api/document/chat/{documentId}:
+ *   get:
+ *     summary: Get previous conversations with the LLM to know more details about a document
+ *     description: Get previous messages from the LLM in regards to  questions or request insights about the uploaded document.
+ *     tags:
+ *       - Document
+ *     parameters:
+ *       - in: path
+ *         name: documentId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The ID of the document to converse about
+ *     responses:
+ *       200:
+ *         description: Response delivered successfully
+ *       400:
+ *         description: Bad request (e.g., invalid input)
+ *       404:
+ *         description: Document not found or unauthorized
+ *       500:
+ *         description: Internal server error (e.g., AI or database failure)
+ */
+
+documentRouter.get('/chat/:documentId', authenticateUser, checkSubscription,converseRateLimiter, getAllChats);
 
 /**
  * @openapi

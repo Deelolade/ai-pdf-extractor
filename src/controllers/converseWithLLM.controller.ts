@@ -103,3 +103,30 @@ ${upload.textExtracted}
         next(errorHandler(500, "Failed to process conversation"))
     }
 }
+
+export const getAllChats = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+    const { documentId } = req.params;
+    const userId = req.user?.id
+    if(!documentId){
+        return  next(errorHandler(400, 'Document Id is required '))
+    }
+
+    const previousChat = await Chat.findOne({ documentId, userId})
+    
+    if(!previousChat){
+        res.status(200).json({
+            success: true,
+            messages: [],
+            info: "No chat record found !"
+        })
+    }
+    res.status(200).json({
+        success: true,
+        messages: previousChat?.messages
+    })
+    } catch (error) {
+        next(errorHandler(500, 'Unable to get previous conversations !!'))
+    }
+
+}

@@ -219,7 +219,7 @@ documentRouter.post('/chat/:documentId', authenticateUser, checkSubscription,con
  *         description: Internal server error (e.g., AI or database failure)
  */
 
-documentRouter.get('/chat/:documentId', authenticateUser, checkSubscription,converseRateLimiter, getAllChats);
+documentRouter.get('/chat/:documentId', authenticateUser, checkSubscription, getAllChats);
 
 /**
  * @openapi

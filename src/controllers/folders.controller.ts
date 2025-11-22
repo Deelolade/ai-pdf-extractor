@@ -4,12 +4,16 @@ import { Folder } from "../models/folders.model";
 
 export const createFolder = async (req: Request, res: Response, next: NextFunction) => {
     const { name } = req.body;
-    if (!name || typeof name !== 'string') {
+    if (!name || typeof name !== 'string' || name.trim() === '') {
         return next(errorHandler(400, "A valid folder name is required"));
     }
     const userId = req.user?.id;
     if (!userId) {
         return next(errorHandler(401, "Unauthorized"))
+    }
+    const existingFolder = await Folder.findOne({name, userId})
+    if (existingFolder) {
+        return next(errorHandler(400, "Choose a new folder name, folder with this name already exists"))
     }
     try {
         const newFolder = await Folder.create({

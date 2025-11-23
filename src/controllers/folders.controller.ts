@@ -51,3 +51,27 @@ export const getAllUserFolders = async (req: Request, res: Response, next: NextF
         next(errorHandler(500, "Failed to fetch folders"))
     }
 }
+export const addDocumentToFolder = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const { documentId } = req.body;
+        const { folderId } = req.params;
+        const userId = req.user?.id;
+        if (!userId) {
+            return next(errorHandler(401, "Unauthorized"))
+        }
+        const existingFolder = await Folder.findOne({ folderId, userId });
+        if (!existingFolder) {
+            return next(errorHandler(404, "Folder not found"))
+        }
+        existingFolder.documentIds.push(documentId);
+        await existingFolder.save()
+        res.status(200).json({
+            success: true,
+            message: "Document added to folder successfully",
+            folder: existingFolder
+        })
+    } catch (error) {
+        console.log(error)
+        next(errorHandler(500, "Failed to add document to folder"))
+    }
+}

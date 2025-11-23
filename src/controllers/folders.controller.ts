@@ -84,3 +84,33 @@ export const addDocumentToFolder = async (req: Request, res: Response, next: Nex
         next(errorHandler(500, "Failed to add document to folder"))
     }
 }
+export const removeDocumentFromFolder = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const { documentId } = req.body;
+        const { folderId } = req.params;
+        const userId = req.user?.id;
+        if (!userId) {
+            return next(errorHandler(401, "Unauthorized"))
+        }
+        if(!folderId || folderId===''){
+            return next (errorHandler(400, 'folder Id is required'))
+        }
+        if(!documentId || documentId===''){
+            return next (errorHandler(400, 'document Id is required'))
+        }
+        const existingFolder = await Folder.findOne({_id:folderId, userId });
+        if (!existingFolder) {
+            return next(errorHandler(404, "Folder not found"))
+        }
+        existingFolder.documentIds = existingFolder.documentIds.filter(id => !(id === documentId || id.equals(documentId)));
+        await existingFolder.save()
+        res.status(200).json({
+            success: true,
+            message: "Document removed from folder successfully",
+            folder: existingFolder
+        })
+    } catch (error) {
+        console.log(error)
+        next(errorHandler(500, "Failed to remove document from folder"))
+    }
+}

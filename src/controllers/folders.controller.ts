@@ -86,8 +86,8 @@ export const addDocumentToFolder = async (req: Request, res: Response, next: Nex
 }
 export const removeDocumentFromFolder = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const { documentId } = req.body;
-        const { folderId } = req.params;
+        // const { documentId } = req.body;
+        const { folderId, documentId } = req.params;
         const userId = req.user?.id;
         if (!userId) {
             return next(errorHandler(401, "Unauthorized"))
@@ -102,7 +102,7 @@ export const removeDocumentFromFolder = async (req: Request, res: Response, next
         if (!existingFolder) {
             return next(errorHandler(404, "Folder not found"))
         }
-        existingFolder.documentIds = existingFolder.documentIds.filter(id => !(id === documentId || id.equals(documentId)));
+        existingFolder.documentIds = existingFolder.documentIds.filter(id => !( id.equals(documentId)));
         await existingFolder.save()
         res.status(200).json({
             success: true,

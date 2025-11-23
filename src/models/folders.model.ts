@@ -2,7 +2,6 @@ import mongoose, { Document, model, Schema } from "mongoose";
 
 export interface FolderDocument extends Document{
     name: string;
-    folderId: string;
     userId: mongoose.Types.ObjectId;
     documentIds: mongoose.Types.ObjectId[];
     createdAt: Date;
@@ -12,11 +11,6 @@ const folderSchema = new Schema<FolderDocument>({
     name:{
         type: String,
         required: true
-    },
-    folderId:{
-        type: String,
-        required: true,
-        unique: true,
     },
     userId:{
         type:Schema.Types.ObjectId,

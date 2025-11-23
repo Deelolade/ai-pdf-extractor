@@ -54,14 +54,23 @@ export const getAllUserFolders = async (req: Request, res: Response, next: NextF
 export const addDocumentToFolder = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const { documentId } = req.body;
+         if(!documentId || documentId===''){
+            return next (errorHandler(400, 'document Id is required'))
+        }
         const { folderId } = req.params;
+        if(!folderId || folderId===''){
+            return next (errorHandler(400, 'folder Id is required'))
+        }
         const userId = req.user?.id;
         if (!userId) {
             return next(errorHandler(401, "Unauthorized"))
         }
-        const existingFolder = await Folder.findOne({ folderId, userId });
+        const existingFolder = await Folder.findOne({ _id:folderId, userId });
         if (!existingFolder) {
             return next(errorHandler(404, "Folder not found"))
+        }
+        if(  existingFolder.documentIds.some(id => id === documentId) ||  existingFolder.documentIds.some(id => id.equals(documentId))){
+            return next(errorHandler(400, "Document already exists in the folder"))
         }
         existingFolder.documentIds.push(documentId);
         await existingFolder.save()

@@ -114,3 +114,18 @@ export const removeDocumentFromFolder = async (req: Request, res: Response, next
         next(errorHandler(500, "Failed to remove document from folder"))
     }
 }
+export const totalFolderCount = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+      const userId = req.user?.id;
+       if(!userId){
+        return next (errorHandler(401, 'Unauthorized'))
+       }
+       const folderCount = await Folder.countDocuments({userId})
+       res.status(200).json({
+        success: true,
+        folderCount
+       })
+  } catch (error) {
+    next (errorHandler(500, "failed to get total folder count"))
+  }
+}

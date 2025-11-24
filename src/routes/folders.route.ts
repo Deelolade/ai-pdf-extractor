@@ -1,6 +1,6 @@
 import express from 'express';
 import { authenticateUser } from '../middleware/authMiddleware';
-import { addDocumentToFolder, createFolder, getAllUserFolders, removeDocumentFromFolder } from '../controllers/folders.controller';
+import { addDocumentToFolder, createFolder, getAllUserFolders, removeDocumentFromFolder, totalFolderCount } from '../controllers/folders.controller';
 
 export const folderRouter = express.Router();
 

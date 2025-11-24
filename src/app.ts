@@ -10,6 +10,7 @@ import { FRONTEND_URL } from "./utils/env";
 import { paymentRouter } from "./routes/payment.route";
 import cookieParser from "cookie-parser"
 import { folderRouter } from "./routes/folders.route";
+import { dashboardRouter } from "./routes/dashboard.route";
 
 const app = express();
 app.use(express.json())
@@ -30,6 +31,7 @@ app.use(cors(corsConfig));
 app.use('/api/auth', userRouter)
 app.use('/api/document', documentRouter)
 app.use('/api/folders', folderRouter)
+app.use('/api/dashboard', dashboardRouter)
 app.use('/api/payments', paymentRouter)
 app.get('/', async (req: Request, res: Response): Promise<void> => {
   try {

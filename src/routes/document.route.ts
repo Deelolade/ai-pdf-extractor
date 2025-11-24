@@ -98,7 +98,7 @@ documentRouter.post('/summarize/:uploadId',authenticateUser, checkSubscription, 
  *       500:
  *         description: Internal server error (e.g., database failure)
  */
-documentRouter.get('/',authenticateUser,getAllUploadsLimiter, getAllMyDocuments)
+documentRouter.get('/',authenticateUser,getAllUploadsLimiter, getAllMyDocuments);
 /**
  * @openapi
  * /api/document/{uploadId}:
@@ -124,8 +124,6 @@ documentRouter.get('/',authenticateUser,getAllUploadsLimiter, getAllMyDocuments)
  *       500:
  *         description: Internal server error (e.g., database failure)
  */
-documentRouter.get('/count',authenticateUser, totalDocumentCount)
-    
 documentRouter.get('/:uploadId',authenticateUser,getAllUploadsLimiter, getDocument);
 
 /**

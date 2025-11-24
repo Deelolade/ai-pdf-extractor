@@ -214,3 +214,19 @@ export const deleteDocument = async (req: Request, res: Response, next: NextFunc
     next(errorHandler(500, "Failed to delete document"))
   }
 }
+
+export const totalDocumentCount = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+      const userId = req.user?.id;
+       if(!userId){
+        return next (errorHandler(401, 'Unauthorized'))
+       }
+       const documentCount = await Upload.countDocuments({userId})
+       res.status(200).json({
+        success: true,
+        documentCount
+       })
+  } catch (error) {
+    next (errorHandler(500, "failed to get total document count"))
+  }
+}

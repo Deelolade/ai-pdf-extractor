@@ -1,5 +1,5 @@
 import express from "express";
-import { uploadPdf,summarizePdf, getAllMyDocuments, deleteDocument, getDocument, updateDocument } from "../controllers/document.controller"
+import { uploadPdf,summarizePdf, getAllMyDocuments, deleteDocument, getDocument, updateDocument, totalDocumentCount } from "../controllers/document.controller"
 import multer from "multer";
 import { authenticateUser } from "../middleware/authMiddleware";
 import { converseRateLimiter, createSummaryLimiter, createUploadLimiter, deleteUploadLimiter, getAllUploadsLimiter, updateDocumentLimiter } from "../utils/rate-limiter";
@@ -124,7 +124,8 @@ documentRouter.get('/',authenticateUser,getAllUploadsLimiter, getAllMyDocuments)
  *       500:
  *         description: Internal server error (e.g., database failure)
  */
-
+documentRouter.get('/count',authenticateUser, totalDocumentCount)
+    
 documentRouter.get('/:uploadId',authenticateUser,getAllUploadsLimiter, getDocument);
 
 /**
@@ -262,5 +263,4 @@ documentRouter.get('/chat/:documentId', authenticateUser, checkSubscription, get
  */
 
 documentRouter.patch('/update/:id',authenticateUser,updateDocumentLimiter, updateDocument)
-
 

@@ -89,3 +89,36 @@ export const updateDocumentLimiter = rateLimit({
   legacyHeaders: false,
   ipv6Subnet: 56,
 });
+export const createFolderLimiter = rateLimit({
+  windowMs: 10 * 60 * 1000,
+  limit: 5, 
+  message: "Too many create folder requests. Please try again later.",
+  standardHeaders: true,
+  legacyHeaders: false,
+  ipv6Subnet: 56,
+});
+export const addDocumentToFolderLimiter = rateLimit({
+  windowMs: 10 * 60 * 1000,
+  limit: 5, 
+  message: "Too many add document to folder requests. Please try again later.",
+  standardHeaders: true,
+  legacyHeaders: false,
+  ipv6Subnet: 56,
+});
+export const removeDocumentFromFolderLimiter = rateLimit({
+  windowMs: 10 * 60 * 1000,
+  limit: 5, 
+  message: "Too many attempt to remove document from folder requests. Please try again later.",
+  standardHeaders: true,
+  legacyHeaders: false,
+  ipv6Subnet: 56,
+});
+export const getAllUserFoldersLimiter = rateLimit({
+  windowMs: 10 * 60 * 1000,
+  limit: 5, 
+  message: "Too many attempt to get user document in a folder requests. Please try again later.",
+  standardHeaders: true,
+  legacyHeaders: false,
+  ipv6Subnet: 56,
+});
+

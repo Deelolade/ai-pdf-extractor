@@ -11,7 +11,7 @@ export const createFolder = async (req: Request, res: Response, next: NextFuncti
     if (!userId) {
         return next(errorHandler(401, "Unauthorized"))
     }
-    const existingFolder = await Folder.findOne({name, userId})
+    const existingFolder = await Folder.findOne({ name, userId })
     if (existingFolder) {
         return next(errorHandler(400, "Choose a new folder name, folder with this name already exists"))
     }
@@ -38,13 +38,18 @@ export const getAllUserFolders = async (req: Request, res: Response, next: NextF
 
         const skip = (page - 1) * limit;
         const userId = req.user?.id;
-        if(!userId){
+        if (!userId) {
             return next(errorHandler(401, "Unauthorized"))
         }
-        const folders = await Folder.find({userId}).limit(limit).skip(skip).sort({createdAt: -1});
+        const folders = await Folder.find({ userId }).populate("documentIds").limit(limit).skip(skip).sort({ createdAt: -1 }).lean();
+        const formattedFolders = folders.map(folder => ({
+            ...folder,
+            documents: folder.documentIds,
+            documentIds: undefined
+        }));
         res.status(200).json({
             success: true,
-            folders
+            folders: formattedFolders
         })
     } catch (error) {
         console.log(error)
@@ -54,22 +59,22 @@ export const getAllUserFolders = async (req: Request, res: Response, next: NextF
 export const addDocumentToFolder = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const { documentId } = req.body;
-         if(!documentId || documentId===''){
-            return next (errorHandler(400, 'document Id is required'))
+        if (!documentId || documentId === '') {
+            return next(errorHandler(400, 'document Id is required'))
         }
         const { folderId } = req.params;
-        if(!folderId || folderId===''){
-            return next (errorHandler(400, 'folder Id is required'))
+        if (!folderId || folderId === '') {
+            return next(errorHandler(400, 'folder Id is required'))
         }
         const userId = req.user?.id;
         if (!userId) {
             return next(errorHandler(401, "Unauthorized"))
         }
-        const existingFolder = await Folder.findOne({ _id:folderId, userId });
+        const existingFolder = await Folder.findOne({ _id: folderId, userId });
         if (!existingFolder) {
             return next(errorHandler(404, "Folder not found"))
         }
-        if(  existingFolder.documentIds.some(id => id === documentId) ||  existingFolder.documentIds.some(id => id.equals(documentId))){
+        if (existingFolder.documentIds.some(id => id === documentId) || existingFolder.documentIds.some(id => id.equals(documentId))) {
             return next(errorHandler(400, "Document already exists in the folder"))
         }
         existingFolder.documentIds.push(documentId);
@@ -92,17 +97,17 @@ export const removeDocumentFromFolder = async (req: Request, res: Response, next
         if (!userId) {
             return next(errorHandler(401, "Unauthorized"))
         }
-        if(!folderId || folderId===''){
-            return next (errorHandler(400, 'folder Id is required'))
+        if (!folderId || folderId === '') {
+            return next(errorHandler(400, 'folder Id is required'))
         }
-        if(!documentId || documentId===''){
-            return next (errorHandler(400, 'document Id is required'))
+        if (!documentId || documentId === '') {
+            return next(errorHandler(400, 'document Id is required'))
         }
-        const existingFolder = await Folder.findOne({_id:folderId, userId });
+        const existingFolder = await Folder.findOne({ _id: folderId, userId });
         if (!existingFolder) {
             return next(errorHandler(404, "Folder not found"))
         }
-        existingFolder.documentIds = existingFolder.documentIds.filter(id => !( id.equals(documentId)));
+        existingFolder.documentIds = existingFolder.documentIds.filter(id => !(id.equals(documentId)));
         await existingFolder.save()
         res.status(200).json({
             success: true,
@@ -114,18 +119,42 @@ export const removeDocumentFromFolder = async (req: Request, res: Response, next
         next(errorHandler(500, "Failed to remove document from folder"))
     }
 }
+export const deleteFolder = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const { folderId } = req.params;
+        const userId = req.user?.id
+        if (!userId) {
+            return next(errorHandler(401, "Unauthorized"))
+        }
+        const existingFolder = await Folder.findOne({ _id: folderId, userId });
+        if (!existingFolder) {
+            return next(errorHandler(404, "Folder not found"))
+        }
+        const folderDeletion = await Folder.findByIdAndDelete(folderId);
+        if (!folderDeletion) {
+            return next(errorHandler(500, "Failed to delete folder"))
+        }
+        res.status(200).json({
+            success: true,
+            message: "Folder deleted successfully",
+        })
+    } catch (error) {
+        console.log(error)
+        next(errorHandler(500, 'failed to delete folder '))
+    }
+}
 export const totalFolderCount = async (req: Request, res: Response, next: NextFunction) => {
-  try {
-      const userId = req.user?.id;
-       if(!userId){
-        return next (errorHandler(401, 'Unauthorized'))
-       }
-       const folderCount = await Folder.countDocuments({userId})
-       res.status(200).json({
-        success: true,
-        folderCount
-       })
-  } catch (error) {
-    next (errorHandler(500, "failed to get total folder count"))
-  }
+    try {
+        const userId = req.user?.id;
+        if (!userId) {
+            return next(errorHandler(401, 'Unauthorized'))
+        }
+        const folderCount = await Folder.countDocuments({ userId })
+        res.status(200).json({
+            success: true,
+            folderCount
+        })
+    } catch (error) {
+        next(errorHandler(500, "failed to get total folder count"))
+    }
 }

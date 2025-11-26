@@ -3,7 +3,7 @@ import mongoose, { Document, model, Schema } from "mongoose";
 export interface FolderDocument extends Document{
     name: string;
     userId: mongoose.Types.ObjectId;
-    documentIds: mongoose.Types.ObjectId[];
+    documents: mongoose.Types.ObjectId[];
     createdAt: Date;
     updatedAt: Date;
 }
@@ -17,7 +17,7 @@ const folderSchema = new Schema<FolderDocument>({
         ref:'user',
         required: true,
     },
-    documentIds:[{
+    documents:[{
         type:Schema.Types.ObjectId,
         ref:'upload',
     }],

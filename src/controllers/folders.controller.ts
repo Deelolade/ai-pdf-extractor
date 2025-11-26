@@ -19,7 +19,7 @@ export const createFolder = async (req: Request, res: Response, next: NextFuncti
         const newFolder = await Folder.create({
             name,
             userId,
-            documentIds: []
+            documents: []
         })
         res.status(201).json({
             success: true,
@@ -41,15 +41,10 @@ export const getAllUserFolders = async (req: Request, res: Response, next: NextF
         if (!userId) {
             return next(errorHandler(401, "Unauthorized"))
         }
-        const folders = await Folder.find({ userId }).populate("documentIds").limit(limit).skip(skip).sort({ createdAt: -1 }).lean();
-        const formattedFolders = folders.map(folder => ({
-            ...folder,
-            documents: folder.documentIds,
-            documentIds: undefined
-        }));
+        const folders = await Folder.find({ userId }).populate("documents").limit(limit).skip(skip).sort({ createdAt: -1 }).lean();
         res.status(200).json({
             success: true,
-            folders: formattedFolders
+            folders 
         })
     } catch (error) {
         console.log(error)
@@ -58,9 +53,9 @@ export const getAllUserFolders = async (req: Request, res: Response, next: NextF
 }
 export const addDocumentToFolder = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const { documentId } = req.body;
-        if (!documentId || documentId === '') {
-            return next(errorHandler(400, 'document Id is required'))
+        const { documentIds } = req.body;
+        if (!Array.isArray(documentIds) || documentIds.length === 0) {
+            return next(errorHandler(400, 'document Ids is required'))
         }
         const { folderId } = req.params;
         if (!folderId || folderId === '') {
@@ -74,11 +69,16 @@ export const addDocumentToFolder = async (req: Request, res: Response, next: Nex
         if (!existingFolder) {
             return next(errorHandler(404, "Folder not found"))
         }
-        if (existingFolder.documentIds.some(id => id === documentId) || existingFolder.documentIds.some(id => id.equals(documentId))) {
-            return next(errorHandler(400, "Document already exists in the folder"))
-        }
-        existingFolder.documentIds.push(documentId);
-        await existingFolder.save()
+        await Folder.findByIdAndUpdate(
+            folderId,
+            { $addToSet: { documents: { $each: documentIds } } },
+            { new: true }
+        )
+        // if (existingFolder.documentIds.some(id => id === documentIds) || existingFolder.documentIds.some(id => id.equals(documentIds))) {
+        //     return next(errorHandler(400, "Document already exists in the folder"))
+        // }
+        // existingFolder.documentIds.push(documentIds);
+        // await existingFolder.save()
         res.status(200).json({
             success: true,
             message: "Document added to folder successfully",
@@ -107,7 +107,7 @@ export const removeDocumentFromFolder = async (req: Request, res: Response, next
         if (!existingFolder) {
             return next(errorHandler(404, "Folder not found"))
         }
-        existingFolder.documentIds = existingFolder.documentIds.filter(id => !(id.equals(documentId)));
+        existingFolder.documents = existingFolder.documents.filter(id => !(id.equals(documentId)));
         await existingFolder.save()
         res.status(200).json({
             success: true,

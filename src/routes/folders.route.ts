@@ -6,7 +6,7 @@ import { addDocumentToFolderLimiter, createFolderLimiter, getAllUserFoldersLimit
 export const folderRouter = express.Router();
 
 folderRouter.post('/create', authenticateUser, createFolderLimiter, createFolder)
-folderRouter.post('/:folderId/documents', authenticateUser, addDocumentToFolderLimiter, addDocumentToFolder)
+folderRouter.post('/:folderId/add-documents', authenticateUser, addDocumentToFolderLimiter, addDocumentToFolder)
 folderRouter.delete('/delete/:folderId', authenticateUser, deleteFolder)
 folderRouter.delete('/:folderId/documents/:documentId', authenticateUser,removeDocumentFromFolderLimiter, removeDocumentFromFolder)
 folderRouter.get('/me', authenticateUser , getAllUserFolders)

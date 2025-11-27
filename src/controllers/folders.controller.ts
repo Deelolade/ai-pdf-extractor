@@ -69,20 +69,15 @@ export const addDocumentToFolder = async (req: Request, res: Response, next: Nex
         if (!existingFolder) {
             return next(errorHandler(404, "Folder not found"))
         }
-        await Folder.findByIdAndUpdate(
+        const updatedFolder = await Folder.findByIdAndUpdate(
             folderId,
             { $addToSet: { documents: { $each: documentIds } } },
             { new: true }
         )
-        // if (existingFolder.documentIds.some(id => id === documentIds) || existingFolder.documentIds.some(id => id.equals(documentIds))) {
-        //     return next(errorHandler(400, "Document already exists in the folder"))
-        // }
-        // existingFolder.documentIds.push(documentIds);
-        // await existingFolder.save()
         res.status(200).json({
             success: true,
             message: "Document added to folder successfully",
-            folder: existingFolder
+            folder: updatedFolder
         })
     } catch (error) {
         console.log(error)

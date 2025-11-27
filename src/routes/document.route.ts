@@ -260,5 +260,5 @@ documentRouter.get('/chat/:documentId', authenticateUser, checkSubscription, get
  *         description: Internal server error
  */
 
-documentRouter.patch('/update/:id',authenticateUser,updateDocumentLimiter, updateDocument)
+documentRouter.put('/update/:id',authenticateUser,updateDocumentLimiter, updateDocument)
 

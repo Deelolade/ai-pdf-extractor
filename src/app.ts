@@ -22,12 +22,13 @@ setupSwagger(app);
 const corsConfig = {
   origin: FRONTEND_URL || "http://localhost:3000",
   credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
 }
 
 app.use(cors(corsConfig));
 
+// ROUTES
 app.use('/api/auth', userRouter)
 app.use('/api/document', documentRouter)
 app.use('/api/folders', folderRouter)

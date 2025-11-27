@@ -14,7 +14,7 @@ export const askAI = async (context:string, question:string):Promise<string>=>{
   Based on this PDF content, answer the question accurately and concisely.
   
   === PDF CONTENT ===
-  ${context.slice(0, 6000)}  // limit context to avoid token overflow
+  ${context.slice(0, 5000)}  // limit context to avoid token overflow
   
   === QUESTION ===
   ${question}

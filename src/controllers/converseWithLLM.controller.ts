@@ -61,7 +61,8 @@ ${upload.textExtracted}
             messages: [
                 { role: "system", content: systemPrompt },
                 { role: "user", content: message }
-            ]
+            ],
+            max_tokens: 2000
         });
         const aiReply = completion.choices[0].message?.content || "No response from LLM";
 

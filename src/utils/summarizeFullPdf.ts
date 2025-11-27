@@ -11,5 +11,6 @@ export const summarizeFullPdf = async (text: string) =>{
         summaries.push(summary);
     }
     const finalSummary =  await summarizeChunk(summaries.join("\n"));
+    console.log(finalSummary)
     return finalSummary;
 }

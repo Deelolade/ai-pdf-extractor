@@ -1,5 +1,5 @@
 import express from 'express'
-import { createUser, forgetPassword, getUserData, resetPassword, signInUser } from '../controllers/auth.controller'
+import { createUser, forgetPassword, getUserData, logOutUser, resetPassword, signInUser } from '../controllers/auth.controller'
 import { forgotPasswordLimiter, loginLimiter, passwordResetLimiter, registerLimiter } from '../utils/rate-limiter'
 import { authenticateUser } from '../middleware/authMiddleware'
 
@@ -39,7 +39,7 @@ export const userRouter = express.Router()
  *         description: Internal server error
  */
 
-userRouter.get('/me',authenticateUser, loginLimiter,getUserData)
+userRouter.get('/me',authenticateUser,getUserData)
 /**
  * @openapi
  * /api/auth/register:
@@ -109,6 +109,9 @@ userRouter.post('/register', registerLimiter, createUser)
  */
 
 userRouter.post('/signin', loginLimiter, signInUser)
+
+userRouter.post('/logout', loginLimiter, logOutUser)
+
 /**
  * @openapi
  * /api/auth/forgot-password:

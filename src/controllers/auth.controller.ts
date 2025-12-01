@@ -10,7 +10,7 @@ import { sendEmail } from "../utils/sendEmail";
 
 
 export const getUserData = async (req: Request,
-    res: Response, next: NextFunction):Promise<void> => {
+    res: Response, next: NextFunction): Promise<void> => {
     try {
         if (!req.user?.id) {
             res.status(401).json({ success: false, message: 'Unauthorized' });
@@ -165,6 +165,19 @@ export const signInUser = async (
     }
 };
 
+export const logOutUser = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+        res.clearCookie('access_token', {
+            httpOnly: true,
+            sameSite: "strict",
+            secure: process.env.NODE_ENV === "production",
+            path: '/'
+        })
+        res.status(200).json({success:true,  message: "Logged out successfully" });
+    } catch (error) {
+        next(errorHandler(500, "Error occured while logging out"));
+    }
+}
 export const forgetPassword = async (
     req: Request,
     res: Response,

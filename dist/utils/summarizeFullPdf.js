@@ -12,6 +12,7 @@ const summarizeFullPdf = async (text) => {
         summaries.push(summary);
     }
     const finalSummary = await (0, summarizePdf_1.summarizeChunk)(summaries.join("\n"));
+    console.log(finalSummary);
     return finalSummary;
 };
 exports.summarizeFullPdf = summarizeFullPdf;

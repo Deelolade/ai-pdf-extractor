@@ -14,6 +14,9 @@ const cors_1 = __importDefault(require("cors"));
 const env_1 = require("./utils/env");
 const payment_route_1 = require("./routes/payment.route");
 const cookie_parser_1 = __importDefault(require("cookie-parser"));
+const folders_route_1 = require("./routes/folders.route");
+const dashboard_route_1 = require("./routes/dashboard.route");
+const mongoose_1 = __importDefault(require("mongoose"));
 const app = (0, express_1.default)();
 app.use(express_1.default.json());
 app.use((0, cookie_parser_1.default)());
@@ -22,12 +25,16 @@ const PORT = 5000;
 (0, swagger_1.setupSwagger)(app);
 const corsConfig = {
     origin: env_1.FRONTEND_URL || "http://localhost:3000",
-    methods: ['GET', 'POST', 'PUT', 'DELETE'],
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],
 };
 app.use((0, cors_1.default)(corsConfig));
+// ROUTES
 app.use('/api/auth', auth_routes_1.userRouter);
 app.use('/api/document', document_route_1.documentRouter);
+app.use('/api/folders', folders_route_1.folderRouter);
+app.use('/api/dashboard', dashboard_route_1.dashboardRouter);
 app.use('/api/payments', payment_route_1.paymentRouter);
 app.get('/', async (req, res) => {
     try {
@@ -36,6 +43,26 @@ app.get('/', async (req, res) => {
     catch (error) {
         console.error("error", error);
         res.status(500).send('server error');
+    }
+});
+app.get('/health', async (req, res) => {
+    try {
+        const ping = await mongoose_1.default.connection.db?.admin().ping();
+        if (!ping)
+            return;
+        res.status(200).json({
+            status: "ok",
+            database: ping.ok === 1 ? "Connected" : "down",
+            uptime: process.uptime(),
+            timestamp: Date.now()
+        });
+    }
+    catch (err) {
+        res.status(500).json({
+            status: 'error',
+            database: 'down',
+            error: err
+        });
     }
 });
 app.use(errorMiddleware_1.globalErrorHandler);

@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.resetPassword = exports.forgetPassword = exports.signInUser = exports.createUser = void 0;
+exports.resetPassword = exports.forgetPassword = exports.logOutUser = exports.signInUser = exports.createUser = exports.getUserData = void 0;
 const crypto_1 = __importDefault(require("crypto"));
 const bcryptjs_1 = __importDefault(require("bcryptjs"));
 const user_model_1 = require("../models/user.model");
@@ -11,6 +11,24 @@ const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const env_1 = require("../utils/env");
 const errorHandler_1 = require("../utils/errorHandler");
 const sendEmail_1 = require("../utils/sendEmail");
+const getUserData = async (req, res, next) => {
+    try {
+        if (!req.user?.id) {
+            res.status(401).json({ success: false, message: 'Unauthorized' });
+            return;
+        }
+        const user = await user_model_1.User.findById(req.user?.id).select('-password').select('-passwordHistory');
+        console.log(user);
+        res.status(200).json({
+            success: true,
+            user
+        });
+    }
+    catch (error) {
+        next((0, errorHandler_1.errorHandler)(500, "Failed to fetch user "));
+    }
+};
+exports.getUserData = getUserData;
 const createUser = async (req, res, next) => {
     try {
         const { name, email, password } = req.body;
@@ -51,6 +69,12 @@ const createUser = async (req, res, next) => {
     <small style="color:#777;">If you didn’t sign up for this account, please ignore this email.</small>
   </div>
   `);
+        res.cookie("access_token", token, {
+            httpOnly: true,
+            sameSite: "strict",
+            secure: process.env.NODE_ENV === "production",
+            maxAge: 24 * 60 * 60 * 1000
+        });
         res.status(201).json({
             success: true,
             message: "User registered successfully",
@@ -103,7 +127,7 @@ const signInUser = async (req, res, next) => {
             httpOnly: true,
             sameSite: "strict",
             secure: process.env.NODE_ENV === "production",
-            maxAge: 15 * 60 * 1000
+            maxAge: 24 * 60 * 60 * 1000
         });
         res.status(200).json({
             success: true,
@@ -125,6 +149,21 @@ const signInUser = async (req, res, next) => {
     }
 };
 exports.signInUser = signInUser;
+const logOutUser = async (req, res, next) => {
+    try {
+        res.clearCookie('access_token', {
+            httpOnly: true,
+            sameSite: "strict",
+            secure: process.env.NODE_ENV === "production",
+            path: '/'
+        });
+        res.status(200).json({ success: true, message: "Logged out successfully" });
+    }
+    catch (error) {
+        next((0, errorHandler_1.errorHandler)(500, "Error occured while logging out"));
+    }
+};
+exports.logOutUser = logOutUser;
 const forgetPassword = async (req, res, next) => {
     const { email } = req.body;
     try {
@@ -172,7 +211,8 @@ const forgetPassword = async (req, res, next) => {
 exports.forgetPassword = forgetPassword;
 const resetPassword = async (req, res, next) => {
     try {
-        const { token, newPassword } = req.body;
+        const { newPassword } = req.body;
+        const { token } = req.params;
         if (!token || !newPassword) {
             return next((0, errorHandler_1.errorHandler)(400, "Token and new password are required"));
         }
@@ -182,7 +222,7 @@ const resetPassword = async (req, res, next) => {
             passwordResetExpiresAt: { $gt: new Date() }
         });
         if (!existingUser) {
-            return next((0, errorHandler_1.errorHandler)(400, "This password reset link is invalid or has expired."));
+            return next((0, errorHandler_1.errorHandler)(400, "This password reset link is invalid."));
         }
         if (newPassword) {
             if (!newPassword) {

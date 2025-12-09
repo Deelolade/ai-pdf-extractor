@@ -81,6 +81,12 @@ export const createUser = async (
   </div>
   `
         );
+        res.cookie("access_token", token, {
+            httpOnly: true,
+            sameSite: "strict",
+            secure: process.env.NODE_ENV === "production",
+            maxAge: 24 * 60 * 60 * 1000
+        })
         res.status(201).json({
             success: true,
             message: "User registered successfully",
@@ -173,7 +179,7 @@ export const logOutUser = async (req: Request, res: Response, next: NextFunction
             secure: process.env.NODE_ENV === "production",
             path: '/'
         })
-        res.status(200).json({success:true,  message: "Logged out successfully" });
+        res.status(200).json({ success: true, message: "Logged out successfully" });
     } catch (error) {
         next(errorHandler(500, "Error occured while logging out"));
     }
@@ -241,7 +247,8 @@ export const resetPassword = async (
     next: NextFunction
 ): Promise<void> => {
     try {
-        const { token, newPassword } = req.body;
+        const { newPassword } = req.body;
+        const { token } = req.params
         if (!token || !newPassword) {
             return next(errorHandler(400, "Token and new password are required"));
         }
@@ -252,7 +259,7 @@ export const resetPassword = async (
         })
 
         if (!existingUser) {
-            return next(errorHandler(400, "This password reset link is invalid or has expired."))
+            return next(errorHandler(400, "This password reset link is invalid."))
         }
 
         if (newPassword) {

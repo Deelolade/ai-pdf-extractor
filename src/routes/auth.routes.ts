@@ -176,4 +176,4 @@ userRouter.post('/forgot-password', forgotPasswordLimiter, forgetPassword)
  *       500:
  *         description: Internal server error
  */
-userRouter.post('/reset-password', passwordResetLimiter, resetPassword)
+userRouter.post('/reset-password/:token', passwordResetLimiter, resetPassword)

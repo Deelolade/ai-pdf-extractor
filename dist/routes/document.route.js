@@ -55,7 +55,7 @@ const upload = (0, multer_1.default)({ storage: multer_1.default.memoryStorage()
  *       500:
  *         description: Internal server error (e.g., database failure)
  */
-exports.documentRouter.post('/create', authMiddleware_1.authenticateUser, rate_limiter_1.createUploadLimiter, upload.single('file'), document_controller_1.uploadPdf);
+exports.documentRouter.post('/create', authMiddleware_1.authenticateUser, rate_limiter_1.createUploadLimiter, upload.single('document'), document_controller_1.uploadPdf);
 /**
  * @openapi
  * /api/document/summarize/{uploadId}:
@@ -155,7 +155,7 @@ exports.documentRouter.get('/:uploadId', authMiddleware_1.authenticateUser, rate
 exports.documentRouter.delete('/:id', authMiddleware_1.authenticateUser, rate_limiter_1.deleteUploadLimiter, document_controller_1.deleteDocument);
 /**
  * @openapi
- * /api/document/converse/{uploadId}:
+ * /api/document/chat/{uploadId}:
  *   post:
  *     summary: Hold conversations with the LLM to know more details about a document
  *     description: Send a message to the LLM to ask questions or request insights about the uploaded document.
@@ -190,4 +190,70 @@ exports.documentRouter.delete('/:id', authMiddleware_1.authenticateUser, rate_li
  *       500:
  *         description: Internal server error (e.g., AI or database failure)
  */
-exports.documentRouter.post('/converse/:uploadId', authMiddleware_1.authenticateUser, checkSubscription_1.checkSubscription, rate_limiter_1.converseRateLimiter, converseWithLLM_controller_1.converseWithLLM);
+exports.documentRouter.post('/chat/:documentId', authMiddleware_1.authenticateUser, checkSubscription_1.checkSubscription, rate_limiter_1.converseRateLimiter, converseWithLLM_controller_1.converseWithLLM);
+/**
+ * @openapi
+ * /api/document/chat/{documentId}:
+ *   get:
+ *     summary: Get previous conversations with the LLM to know more details about a document
+ *     description: Get previous messages from the LLM in regards to  questions or request insights about the uploaded document.
+ *     tags:
+ *       - Document
+ *     parameters:
+ *       - in: path
+ *         name: documentId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The ID of the document to converse about
+ *     responses:
+ *       200:
+ *         description: Response delivered successfully
+ *       400:
+ *         description: Bad request (e.g., invalid input)
+ *       404:
+ *         description: Document not found or unauthorized
+ *       500:
+ *         description: Internal server error (e.g., AI or database failure)
+ */
+exports.documentRouter.get('/chat/:documentId', authMiddleware_1.authenticateUser, checkSubscription_1.checkSubscription, converseWithLLM_controller_1.getAllChats);
+/**
+ * @openapi
+ * /api/document/update/{id}:
+ *   patch:
+ *     summary: Update document file name
+ *     description: Change the name of an uploaded document by its ID.
+ *     tags:
+ *       - Document
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The ID of the document to update
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - fileName
+ *             properties:
+ *               fileName:
+ *                 type: string
+ *                 description: The new name for the document
+ *     responses:
+ *       200:
+ *         description: Document file name updated successfully
+ *       400:
+ *         description: Invalid input or missing file name
+ *       401:
+ *         description: Unauthorized
+ *       404:
+ *         description: Document not found
+ *       500:
+ *         description: Internal server error
+ */
+exports.documentRouter.put('/update/:id', authMiddleware_1.authenticateUser, rate_limiter_1.updateDocumentLimiter, document_controller_1.updateDocument);

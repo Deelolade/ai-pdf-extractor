@@ -24,6 +24,7 @@ const summarizeChunk = async (chunk) => {
                     content: `Summarize the following text in 5-7 sentences:\n\n${chunk}`,
                 },
             ],
+            max_tokens: 2000
         });
         return completion.choices[0].message.content;
     }

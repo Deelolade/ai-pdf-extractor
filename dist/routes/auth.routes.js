@@ -7,7 +7,42 @@ exports.userRouter = void 0;
 const express_1 = __importDefault(require("express"));
 const auth_controller_1 = require("../controllers/auth.controller");
 const rate_limiter_1 = require("../utils/rate-limiter");
+const authMiddleware_1 = require("../middleware/authMiddleware");
 exports.userRouter = express_1.default.Router();
+/**
+ * @openapi
+ * /api/auth/me:
+ *   get:
+ *     summary: Get the currently authenticated user
+ *     tags:
+ *       - Authentication
+ *     security:
+ *       - cookieAuth: []   # or whatever auth scheme you use (JWT, cookie, etc.)
+ *     responses:
+ *       200:
+ *         description: Successfully retrieved user
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 id:
+ *                   type: string
+ *                 name:
+ *                   type: string
+ *                 email:
+ *                   type: string
+ *                   format: email
+ *                 isPaid:
+ *                   type: boolean
+ *                 trialCount:
+ *                   type: integer
+ *       401:
+ *         description: Unauthorized (user not logged in)
+ *       500:
+ *         description: Internal server error
+ */
+exports.userRouter.get('/me', authMiddleware_1.authenticateUser, auth_controller_1.getUserData);
 /**
  * @openapi
  * /api/auth/register:
@@ -75,6 +110,7 @@ exports.userRouter.post('/register', rate_limiter_1.registerLimiter, auth_contro
  *         description: Internal server error (e.g., database failure)
  */
 exports.userRouter.post('/signin', rate_limiter_1.loginLimiter, auth_controller_1.signInUser);
+exports.userRouter.post('/logout', rate_limiter_1.loginLimiter, auth_controller_1.logOutUser);
 /**
  * @openapi
  * /api/auth/forgot-password:
@@ -139,4 +175,4 @@ exports.userRouter.post('/forgot-password', rate_limiter_1.forgotPasswordLimiter
  *       500:
  *         description: Internal server error
  */
-exports.userRouter.post('/reset-password', rate_limiter_1.passwordResetLimiter, auth_controller_1.resetPassword);
+exports.userRouter.post('/reset-password/:token', rate_limiter_1.passwordResetLimiter, auth_controller_1.resetPassword);

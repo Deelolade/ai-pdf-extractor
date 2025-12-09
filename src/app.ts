@@ -29,6 +29,7 @@ const corsConfig = {
   allowedHeaders: ['Content-Type', 'Authorization'],
 }
 
+console.log(FRONTEND_URL)
 app.use(cors(corsConfig));
 
 // ROUTES

@@ -62,7 +62,7 @@ export const createUser = async (
         );
         await sendEmail(
             newUser.email,
-            "Welcome to AIPDF Extractor 🚀",
+            "Welcome to DocFeel 🚀",
             `
   <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
     <h2>Hi ${newUser.name || "there"},</h2>
@@ -75,7 +75,7 @@ export const createUser = async (
     </ul>
     <p>We’re excited to help you save time and focus on what truly matters.</p>
     <br/>
-    <p>— The AI PDF Extractor Team</p>
+    <p>— The DocFeel Team</p>
     <hr/>
     <small style="color:#777;">If you didn’t sign up for this account, please ignore this email.</small>
   </div>
@@ -83,9 +83,10 @@ export const createUser = async (
         );
         res.cookie("access_token", token, {
             httpOnly: true,
-            sameSite: "strict",
+            sameSite: "none",
             secure: process.env.NODE_ENV === "production",
-            maxAge: 24 * 60 * 60 * 1000
+            maxAge: 24 * 60 * 60 * 1000,
+            path:'/'
         })
         res.status(201).json({
             success: true,
@@ -130,16 +131,16 @@ export const signInUser = async (
         );
         await sendEmail(
             validUser.email,
-            "New login to your AI PDF Extractor account 🔐",
+            "New login to your DocFeel account 🔐",
             `
   <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
     <h2>Hello ${validUser.name || "there"},</h2>
-    <p>We noticed a new login to your <strong>AI PDF Extractor</strong> account.</p>
+    <p>We noticed a new login to your <strong>DocFeel</strong> account.</p>
     <p>If this was you, you can safely ignore this email.</p>
     <p>If it wasn’t you, we recommend resetting your password immediately to protect your data.</p>
     <br/>
     <p>Stay secure,</p>
-    <p>— The AI PDF Extractor Security Team</p>
+    <p>— The DocFeel Security Team</p>
     <hr/>
     <small style="color:#777;">This is an automated email. Please do not reply.</small>
   </div>
@@ -148,9 +149,10 @@ export const signInUser = async (
 
         res.cookie("access_token", token, {
             httpOnly: true,
-            sameSite: "strict",
+            sameSite: "none",
             secure: process.env.NODE_ENV === "production",
-            maxAge: 24 * 60 * 60 * 1000
+            maxAge: 24 * 60 * 60 * 1000,
+            path:"/"
         })
         res.status(200).json({
             success: true,
@@ -175,7 +177,7 @@ export const logOutUser = async (req: Request, res: Response, next: NextFunction
     try {
         res.clearCookie('access_token', {
             httpOnly: true,
-            sameSite: "strict",
+            sameSite: "none",
             secure: process.env.NODE_ENV === "production",
             path: '/'
         })
@@ -220,13 +222,13 @@ export const forgetPassword = async (
             `
   <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
   <h2>Hello ${existingUser.name || "there"},</h2>
-  <p>We received a request to reset the password for your <strong>AI PDF Extractor</strong> account.</p>
+  <p>We received a request to reset the password for your <strong> DocFeel </strong> account.</p>
   <p>If you made this request, you can reset your password by clicking the link below:</p>
   <p><a href="${resetPasswordLink}" style="color: #007bff; text-decoration: none;">Reset Your Password</a></p>
   <p>If you did not request a password reset, please ignore this email. Your password will not be changed.</p>
   <br/>
   <p>Stay secure,</p>
-  <p>— The AI PDF Extractor Security Team</p>
+  <p>— DocFeel Security Team</p>
   <hr/>
   <small style="color:#777;">This is an automated email. Please do not reply.</small>
 </div>
@@ -315,12 +317,12 @@ export const resetPassword = async (
                 `
   <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
     <h2>Hello ${existingUser.name || "there"},</h2>
-    <p>This is a confirmation that the password for your <strong>AI PDF Extractor</strong> account was successfully changed.</p>
+    <p>This is a confirmation that the password for your <strong>DocFeel</strong> account was successfully changed.</p>
     <p>If you made this change, no further action is needed.</p>
-    <p>If you did <strong>not</strong> change your password, please <a href="" style="color: #007bff; text-decoration: none;">secure your account</a> immediately by resetting your password and reviewing your account activity.</p>
+    <p>If you did <strong>not</strong> change your password, please <a href="https://docfeel.vercel.app/forgot-password" style="color: #007bff; text-decoration: none;">secure your account</a> immediately by resetting your password and reviewing your account activity.</p>
     <br/>
     <p>Stay safe,</p>
-    <p>— The AI PDF Extractor Security Team</p>
+    <p>— DocFeel Security Team</p>
     <hr/>
     <small style="color:#777;">This is an automated email. Please do not reply.</small>
   </div>

@@ -29,7 +29,7 @@ export const sendEmail = async (to: string, subject: string, html: string) => {
         subject,
         html
     })
-    chalk.blue(console.log("✅ Email sent successfully:"))
+    chalk.blue(console.log("✅ Email sent successfully:," + subject))
     } catch (error) {
         console.log("Failed to send email:",error)
     }

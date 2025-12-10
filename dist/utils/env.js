@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.NODE_ENV = exports.FLW_ENCRYPTION_KEY = exports.FLW_SECRET_KEY = exports.FLW_PUBLIC_KEY = exports.OPENAI_APIKEY = exports.PINECONE_INDEX = exports.PINECONE_API_KEY = exports.MAX_TRIALS = exports.R2_PUBLIC_URL = exports.R2_BUCKET_NAME = exports.R2_SECRET_ACCESS_KEY = exports.R2_ACCESS_KEY_ID = exports.CLOUDFLARE_ACCOUNT_ID = exports.FRONTEND_URL = exports.CLOUDINARY_API_SECRET = exports.CLOUDINARY_API_KEY = exports.CLOUDINARY_CLOUD_NAME = exports.apiKey = exports.EMAIL_PASS = exports.EMAIL_USER = exports.JWT_TOKEN = exports.MONGODB_URL = void 0;
+exports.RESEND_API_KEY = exports.NODE_ENV = exports.FLW_ENCRYPTION_KEY = exports.FLW_SECRET_KEY = exports.FLW_PUBLIC_KEY = exports.OPENAI_APIKEY = exports.PINECONE_INDEX = exports.PINECONE_API_KEY = exports.MAX_TRIALS = exports.R2_PUBLIC_URL = exports.R2_BUCKET_NAME = exports.R2_SECRET_ACCESS_KEY = exports.R2_ACCESS_KEY_ID = exports.CLOUDFLARE_ACCOUNT_ID = exports.FRONTEND_URL = exports.CLOUDINARY_API_SECRET = exports.CLOUDINARY_API_KEY = exports.CLOUDINARY_CLOUD_NAME = exports.apiKey = exports.EMAIL_PASS = exports.EMAIL_USER = exports.JWT_TOKEN = exports.MONGODB_URL = void 0;
 const dotenv_1 = require("dotenv");
 (0, dotenv_1.config)();
 exports.MONGODB_URL = process.env.MONGODB_URL;
@@ -90,4 +90,8 @@ if (!exports.FLW_ENCRYPTION_KEY) {
 exports.NODE_ENV = process.env.NODE_ENV;
 if (!exports.NODE_ENV) {
     throw new Error("NODE_ENV is not defined in .env");
+}
+exports.RESEND_API_KEY = process.env.RESEND_API_KEY;
+if (!exports.RESEND_API_KEY) {
+    throw new Error("RESEND_API_KEY is not defined in .env");
 }

@@ -94,3 +94,8 @@ if(!NODE_ENV){
     throw new Error ("NODE_ENV is not defined in .env")
 }
 
+export const RESEND_API_KEY = process.env.RESEND_API_KEY as string;
+if(!RESEND_API_KEY){
+    throw new Error ("RESEND_API_KEY is not defined in .env")
+}
+

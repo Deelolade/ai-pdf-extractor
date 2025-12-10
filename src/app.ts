@@ -17,7 +17,7 @@ import { uptime } from "process";
 const app = express();
 app.use(express.json())
 app.use(cookieParser())
-app.set('trust proxy', true);
+app.set('trust proxy', 1);
 const PORT = 5000;
 connectDb()
 setupSwagger(app);

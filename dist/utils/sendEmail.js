@@ -5,25 +5,32 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.sendEmail = void 0;
 const chalk_1 = __importDefault(require("chalk"));
-const nodemailer_1 = __importDefault(require("nodemailer"));
+const resend_1 = require("resend");
 const env_1 = require("./env");
+const resend = new resend_1.Resend(env_1.RESEND_API_KEY);
 const sendEmail = async (to, subject, html) => {
     try {
-        const transporter = nodemailer_1.default.createTransport({
-            service: "gmail",
-            auth: {
-                user: env_1.EMAIL_USER,
-                pass: env_1.EMAIL_PASS
-            }
-        });
-        const mailOptions = {
-            from: "habeeboluwanishola13@gmail.com",
+        //     const transporter = nodemailer.createTransport({
+        //     service: "gmail",
+        //     auth: {
+        //         user: EMAIL_USER,
+        //         pass: EMAIL_PASS
+        //     }
+        // } as SMTPTransport.Options);
+        // const mailOptions = {
+        //     from: "habeeboluwanishola13@gmail.com",
+        //     to,
+        //     subject,
+        //     html,
+        // }
+        // const info = await transporter.sendMail(mailOptions);
+        await resend.emails.send({
+            from: "DocFeel <onboarding@resend.dev>",
             to,
             subject,
-            html,
-        };
-        const info = await transporter.sendMail(mailOptions);
-        chalk_1.default.blue(console.log("✅ Email sent successfully:", info.messageId));
+            html
+        });
+        chalk_1.default.blue(console.log("✅ Email sent successfully:"));
     }
     catch (error) {
         console.log("Failed to send email:", error);

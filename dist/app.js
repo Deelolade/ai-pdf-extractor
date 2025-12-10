@@ -20,6 +20,7 @@ const mongoose_1 = __importDefault(require("mongoose"));
 const app = (0, express_1.default)();
 app.use(express_1.default.json());
 app.use((0, cookie_parser_1.default)());
+app.set('trust proxy', 1);
 const PORT = 5000;
 (0, db_1.connectDb)();
 (0, swagger_1.setupSwagger)(app);
@@ -29,6 +30,7 @@ const corsConfig = {
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],
 };
+console.log(env_1.FRONTEND_URL);
 app.use((0, cors_1.default)(corsConfig));
 // ROUTES
 app.use('/api/auth', auth_routes_1.userRouter);

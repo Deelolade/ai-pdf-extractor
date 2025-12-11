@@ -81,12 +81,13 @@ export const createUser = async (
   </div>
   `
         );
+       const isProduction = process.env.NODE_ENV === "production";
         res.cookie("access_token", token, {
             httpOnly: true,
-            sameSite: "none",
-            secure: process.env.NODE_ENV === "production",
+            sameSite: isProduction ? "none": "lax",
+            secure: isProduction,
             maxAge: 24 * 60 * 60 * 1000,
-            path:'/'
+            path:"/"
         })
         res.status(201).json({
             success: true,
@@ -146,11 +147,11 @@ export const signInUser = async (
   </div>
   `
         );
-
+        const isProduction = process.env.NODE_ENV === "production";
         res.cookie("access_token", token, {
             httpOnly: true,
-            sameSite: "none",
-            secure: process.env.NODE_ENV === "production",
+            sameSite: isProduction ? "none": "lax",
+            secure: isProduction,
             maxAge: 24 * 60 * 60 * 1000,
             path:"/"
         })
@@ -175,11 +176,13 @@ export const signInUser = async (
 
 export const logOutUser = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
-        res.clearCookie('access_token', {
+       const isProduction = process.env.NODE_ENV === "production";
+        res.clearCookie("access_token", {
             httpOnly: true,
-            sameSite: "none",
-            secure: process.env.NODE_ENV === "production",
-            path: '/'
+            sameSite: isProduction ? "none": "lax",
+            secure: isProduction,
+            maxAge: 24 * 60 * 60 * 1000,
+            path:"/"
         })
         res.status(200).json({ success: true, message: "Logged out successfully" });
     } catch (error) {

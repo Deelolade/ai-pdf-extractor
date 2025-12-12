@@ -28,10 +28,11 @@ const allowedOrigins = [
   "https://www.docfeel.com",
   "https://docfeel.vercel.app",
   "http://localhost:3000"
-];
+].filter(Boolean);
 
 const corsConfig = {
   origin: (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => {
+        console.log("Incoming origin:", origin);
     // Allow requests with no origin (Postman, mobile apps)
     if (!origin || allowedOrigins.includes(origin)) {
       return callback(null, true);

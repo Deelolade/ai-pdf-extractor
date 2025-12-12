@@ -22,12 +22,26 @@ const PORT = 5000;
 connectDb()
 setupSwagger(app);
 
+const allowedOrigins = [
+  process.env.FRONTEND_URL,
+  "https://docfeel.com",
+  "https://www.docfeel.com",
+  "https://docfeel.vercel.app",
+  "http://localhost:3000"
+];
+
 const corsConfig = {
-  origin:  "http://localhost:3000",
+  origin: (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => {
+    // Allow requests with no origin (Postman, mobile apps)
+    if (!origin || allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    }
+    return callback(new Error("Not allowed by CORS"));
+  },
   credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
-}
+  methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"],
+};
 
 console.log(FRONTEND_URL)
 app.use(cors(corsConfig));

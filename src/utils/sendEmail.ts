@@ -24,7 +24,7 @@ export const sendEmail = async (to: string, subject: string, html: string) => {
     // const info = await transporter.sendMail(mailOptions);
 
     await resend.emails.send({
-        from: "DocFeel <onboarding@resend.dev>",
+        from: "DocFeel <no-reply@docfeel.com>",
         to,
         subject,
         html

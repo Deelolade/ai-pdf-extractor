@@ -8,27 +8,13 @@ import { EMAIL_PASS, EMAIL_USER, RESEND_API_KEY } from "./env";
 const resend = new Resend(RESEND_API_KEY)
 export const sendEmail = async (to: string, subject: string, html: string) => {
     try {
-    //     const transporter = nodemailer.createTransport({
-    //     service: "gmail",
-    //     auth: {
-    //         user: EMAIL_USER,
-    //         pass: EMAIL_PASS
-    //     }
-    // } as SMTPTransport.Options);
-    // const mailOptions = {
-    //     from: "habeeboluwanishola13@gmail.com",
-    //     to,
-    //     subject,
-    //     html,
-    // }
-    // const info = await transporter.sendMail(mailOptions);
-
-    await resend.emails.send({
+    const results = await resend.emails.send({
         from: "DocFeel <no-reply@docfeel.com>",
         to,
         subject,
         html
     })
+    console.log(results);
     chalk.blue(console.log("✅ Email sent successfully:," + subject))
     } catch (error) {
         console.log("Failed to send email:",error)

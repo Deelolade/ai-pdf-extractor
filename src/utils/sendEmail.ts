@@ -14,8 +14,8 @@ export const sendEmail = async (to: string, subject: string, html: string) => {
         subject,
         html
     })
-    console.log(results);
-    chalk.blue(console.log("✅ Email sent successfully:," + subject))
+    console.log("results fron resend",results);
+    chalk.blue(console.log("✅ Email sent successfully:" + subject))
     } catch (error) {
         console.log("Failed to send email:",error)
     }

@@ -1,6 +1,5 @@
 import chalk from "chalk";
-import nodemailer from "nodemailer";
-import SMTPTransport from "nodemailer/lib/smtp-transport";
+
 
 import { Resend } from "resend";
 import { EMAIL_PASS, EMAIL_USER, RESEND_API_KEY } from "./env";
@@ -8,15 +7,21 @@ import { EMAIL_PASS, EMAIL_USER, RESEND_API_KEY } from "./env";
 const resend = new Resend(RESEND_API_KEY)
 export const sendEmail = async (to: string, subject: string, html: string) => {
     try {
-    const results = await resend.emails.send({
-        from: "DocFeel <no-reply@docfeel.com>",
-        to,
-        subject,
-        html
-    })
-    console.log("results fron resend",results);
-    chalk.blue(console.log("✅ Email sent successfully:" + subject))
+        const { data, error } = await resend.emails.send({
+            from: "DocFeel <no-reply@docfeel.com>",
+            to:[to],
+            subject,
+            html,
+            replyTo: "support@docfeel.com",
+        })
+        if (error) {
+            console.error("Resend error:", error);
+            return false;
+        }
+        console.log("Email sent:", data?.id);
+        return true;
     } catch (error) {
-        console.log("Failed to send email:",error)
+        console.log("Failed to send email:", error)
+        return false;
     }
 }

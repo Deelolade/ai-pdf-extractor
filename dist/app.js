@@ -11,7 +11,6 @@ const errorMiddleware_1 = require("./middleware/errorMiddleware");
 const document_route_1 = require("./routes/document.route");
 const swagger_1 = require("./utils/swagger");
 const cors_1 = __importDefault(require("cors"));
-const env_1 = require("./utils/env");
 const payment_route_1 = require("./routes/payment.route");
 const cookie_parser_1 = __importDefault(require("cookie-parser"));
 const folders_route_1 = require("./routes/folders.route");
@@ -24,13 +23,26 @@ app.set('trust proxy', 1);
 const PORT = 5000;
 (0, db_1.connectDb)();
 (0, swagger_1.setupSwagger)(app);
+const allowedOrigins = [
+    process.env.FRONTEND_URL,
+    "https://docfeel.com",
+    "https://www.docfeel.com",
+    "https://docfeel.vercel.app",
+    "http://localhost:3000"
+].filter(Boolean);
 const corsConfig = {
-    origin: env_1.FRONTEND_URL || "http://localhost:3000",
+    origin: (origin, callback) => {
+        console.log("Incoming origin:", origin);
+        // Allow requests with no origin (Postman, mobile apps)
+        if (!origin || allowedOrigins.includes(origin)) {
+            return callback(null, true);
+        }
+        return callback(new Error("Not allowed by CORS"));
+    },
     credentials: true,
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization'],
+    methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
 };
-console.log(env_1.FRONTEND_URL);
 app.use((0, cors_1.default)(corsConfig));
 // ROUTES
 app.use('/api/auth', auth_routes_1.userRouter);

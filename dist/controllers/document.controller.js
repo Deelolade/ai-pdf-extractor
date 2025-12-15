@@ -40,10 +40,10 @@ const uploadPdf = async (req, res, next) => {
         });
         await uploadText.save();
         // INCREASE USER TRIAL COUNT FOR FREE USERS 
-        // if (!user.isPaidUser) {
-        //   user.trialCount += 1;
-        //   await user.save()
-        // }
+        if (!user.isPaidUser) {
+            user.trialCount += 1;
+            await user.save();
+        }
         res.status(200).json({
             message: "File uploaded and text extracted successfully",
             fileUrl,

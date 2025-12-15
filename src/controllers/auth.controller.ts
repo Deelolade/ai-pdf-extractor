@@ -132,7 +132,7 @@ export const signInUser = async (
         );
         await sendEmail(
             validUser.email,
-            "New login to your DocFeel account 🔐",
+            "New sign-in to your DocFeel account",
             `
   <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
     <h2>Hello ${validUser.name || "there"},</h2>

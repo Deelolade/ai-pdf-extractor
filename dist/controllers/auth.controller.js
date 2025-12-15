@@ -52,7 +52,7 @@ const createUser = async (req, res, next) => {
             id: newUser._id,
             email: newUser.email,
         }, env_1.JWT_TOKEN, { expiresIn: "7d" });
-        await (0, sendEmail_1.sendEmail)(newUser.email, "Welcome to AIPDF Extractor 🚀", `
+        await (0, sendEmail_1.sendEmail)(newUser.email, "Welcome to DocFeel 🚀", `
   <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
     <h2>Hi ${newUser.name || "there"},</h2>
     <p>Welcome to <strong>AI PDF Extractor</strong> — your intelligent assistant for reading, analyzing, and extracting insights from PDFs in seconds.</p>
@@ -64,16 +64,18 @@ const createUser = async (req, res, next) => {
     </ul>
     <p>We’re excited to help you save time and focus on what truly matters.</p>
     <br/>
-    <p>— The AI PDF Extractor Team</p>
+    <p>— The DocFeel Team</p>
     <hr/>
     <small style="color:#777;">If you didn’t sign up for this account, please ignore this email.</small>
   </div>
   `);
+        const isProduction = process.env.NODE_ENV === "production";
         res.cookie("access_token", token, {
             httpOnly: true,
-            sameSite: "strict",
-            secure: process.env.NODE_ENV === "production",
-            maxAge: 24 * 60 * 60 * 1000
+            sameSite: isProduction ? "none" : "lax",
+            secure: isProduction,
+            maxAge: 24 * 60 * 60 * 1000,
+            path: "/"
         });
         res.status(201).json({
             success: true,
@@ -110,24 +112,26 @@ const signInUser = async (req, res, next) => {
             return next((0, errorHandler_1.errorHandler)(400, "Invalid Credentials"));
         }
         const token = jsonwebtoken_1.default.sign({ id: validUser._id, email: validUser.email }, env_1.JWT_TOKEN, { expiresIn: "7d" });
-        await (0, sendEmail_1.sendEmail)(validUser.email, "New login to your AI PDF Extractor account 🔐", `
+        await (0, sendEmail_1.sendEmail)(validUser.email, "New sign-in to your DocFeel account", `
   <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
     <h2>Hello ${validUser.name || "there"},</h2>
-    <p>We noticed a new login to your <strong>AI PDF Extractor</strong> account.</p>
+    <p>We noticed a new login to your <strong>DocFeel</strong> account.</p>
     <p>If this was you, you can safely ignore this email.</p>
     <p>If it wasn’t you, we recommend resetting your password immediately to protect your data.</p>
     <br/>
     <p>Stay secure,</p>
-    <p>— The AI PDF Extractor Security Team</p>
+    <p>— The DocFeel Security Team</p>
     <hr/>
     <small style="color:#777;">This is an automated email. Please do not reply.</small>
   </div>
   `);
+        const isProduction = process.env.NODE_ENV === "production";
         res.cookie("access_token", token, {
             httpOnly: true,
-            sameSite: "strict",
-            secure: process.env.NODE_ENV === "production",
-            maxAge: 24 * 60 * 60 * 1000
+            sameSite: isProduction ? "none" : "lax",
+            secure: isProduction,
+            maxAge: 24 * 60 * 60 * 1000,
+            path: "/"
         });
         res.status(200).json({
             success: true,
@@ -151,11 +155,13 @@ const signInUser = async (req, res, next) => {
 exports.signInUser = signInUser;
 const logOutUser = async (req, res, next) => {
     try {
-        res.clearCookie('access_token', {
+        const isProduction = process.env.NODE_ENV === "production";
+        res.clearCookie("access_token", {
             httpOnly: true,
-            sameSite: "strict",
-            secure: process.env.NODE_ENV === "production",
-            path: '/'
+            sameSite: isProduction ? "none" : "lax",
+            secure: isProduction,
+            maxAge: 24 * 60 * 60 * 1000,
+            path: "/"
         });
         res.status(200).json({ success: true, message: "Logged out successfully" });
     }
@@ -187,13 +193,13 @@ const forgetPassword = async (req, res, next) => {
         await (0, sendEmail_1.sendEmail)(existingUser.email, "Attempt to change password on your account 🔐", `
   <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
   <h2>Hello ${existingUser.name || "there"},</h2>
-  <p>We received a request to reset the password for your <strong>AI PDF Extractor</strong> account.</p>
+  <p>We received a request to reset the password for your <strong> DocFeel </strong> account.</p>
   <p>If you made this request, you can reset your password by clicking the link below:</p>
   <p><a href="${resetPasswordLink}" style="color: #007bff; text-decoration: none;">Reset Your Password</a></p>
   <p>If you did not request a password reset, please ignore this email. Your password will not be changed.</p>
   <br/>
   <p>Stay secure,</p>
-  <p>— The AI PDF Extractor Security Team</p>
+  <p>— DocFeel Security Team</p>
   <hr/>
   <small style="color:#777;">This is an automated email. Please do not reply.</small>
 </div>
@@ -271,12 +277,12 @@ const resetPassword = async (req, res, next) => {
             (0, sendEmail_1.sendEmail)(existingUser.email, "Your password was changed ✅", `
   <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
     <h2>Hello ${existingUser.name || "there"},</h2>
-    <p>This is a confirmation that the password for your <strong>AI PDF Extractor</strong> account was successfully changed.</p>
+    <p>This is a confirmation that the password for your <strong>DocFeel</strong> account was successfully changed.</p>
     <p>If you made this change, no further action is needed.</p>
-    <p>If you did <strong>not</strong> change your password, please <a href="" style="color: #007bff; text-decoration: none;">secure your account</a> immediately by resetting your password and reviewing your account activity.</p>
+    <p>If you did <strong>not</strong> change your password, please <a href="https://docfeel.vercel.app/forgot-password" style="color: #007bff; text-decoration: none;">secure your account</a> immediately by resetting your password and reviewing your account activity.</p>
     <br/>
     <p>Stay safe,</p>
-    <p>— The AI PDF Extractor Security Team</p>
+    <p>— DocFeel Security Team</p>
     <hr/>
     <small style="color:#777;">This is an automated email. Please do not reply.</small>
   </div>

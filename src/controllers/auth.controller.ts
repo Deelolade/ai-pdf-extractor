@@ -7,6 +7,7 @@ import jwt from "jsonwebtoken";
 import { FRONTEND_URL, JWT_TOKEN } from "../utils/env";
 import { errorHandler } from "../utils/errorHandler";
 import { sendEmail } from "../utils/sendEmail";
+import { postHog } from "../utils/posthog";
 
 
 export const getUserData = async (req: Request,
@@ -81,13 +82,13 @@ export const createUser = async (
   </div>
   `
         );
-       const isProduction = process.env.NODE_ENV === "production";
+        const isProduction = process.env.NODE_ENV === "production";
         res.cookie("access_token", token, {
             httpOnly: true,
-            sameSite: isProduction ? "none": "lax",
+            sameSite: isProduction ? "none" : "lax",
             secure: isProduction,
             maxAge: 24 * 60 * 60 * 1000,
-            path:"/"
+            path: "/"
         })
         res.status(201).json({
             success: true,
@@ -112,17 +113,42 @@ export const signInUser = async (
     res: Response,
     next: NextFunction
 ): Promise<void> => {
+    postHog.capture({
+  distinctId: "local_test_user",
+  event: "test_event",
+});
+
+await postHog.flush();
     const { email, password } = req.body;
     if (!email || !password) {
+        postHog.capture({
+            distinctId: email || "unknown user",
+            event: "login_failed",
+            properties: {
+                reason: "missing fields"
+            }
+        })
         return next(errorHandler(400, "All fields are required !!"));
     }
     try {
         const validUser = await User.findOne({ email });
         if (!validUser) {
+            postHog.capture({
+                distinctId: email,
+                event: "login_failed",
+                properties: { reason: "user_not_found" },
+            });
+            
             return next(errorHandler(400, "User not found"));
         }
         const validPassword = bcrypt.compareSync(password, validUser.password);
         if (!validPassword) {
+            postHog.capture({
+                distinctId: validUser.id,
+                event: "login_failed",
+                properties: { reason: "invalid_credentials" },
+            });
+
             return next(errorHandler(400, "Invalid Credentials"));
         }
         const token = jwt.sign(
@@ -130,31 +156,45 @@ export const signInUser = async (
             JWT_TOKEN,
             { expiresIn: "7d" }
         );
-        await sendEmail(
-            validUser.email,
-            "New sign-in to your DocFeel account",
-            `
-  <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
-    <h2>Hello ${validUser.name || "there"},</h2>
-    <p>We noticed a new login to your <strong>DocFeel</strong> account.</p>
-    <p>If this was you, you can safely ignore this email.</p>
-    <p>If it wasn’t you, we recommend resetting your password immediately to protect your data.</p>
-    <br/>
-    <p>Stay secure,</p>
-    <p>— The DocFeel Security Team</p>
-    <hr/>
-    <small style="color:#777;">This is an automated email. Please do not reply.</small>
-  </div>
-  `
-        );
+//         await sendEmail(
+//             validUser.email,
+//             "New sign-in to your DocFeel account",
+//             `
+//   <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+//     <h2>Hello ${validUser.name || "there"},</h2>
+//     <p>We noticed a new login to your <strong>DocFeel</strong> account.</p>
+//     <p>If this was you, you can safely ignore this email.</p>
+//     <p>If it wasn’t you, we recommend resetting your password immediately to protect your data.</p>
+//     <br/>
+//     <p>Stay secure,</p>
+//     <p>— The DocFeel Security Team</p>
+//     <hr/>
+//     <small style="color:#777;">This is an automated email. Please do not reply.</small>
+//   </div>
+//   `
+//         );
         const isProduction = process.env.NODE_ENV === "production";
         res.cookie("access_token", token, {
             httpOnly: true,
-            sameSite: isProduction ? "none": "lax",
+            sameSite: isProduction ? "none" : "lax",
             secure: isProduction,
             maxAge: 24 * 60 * 60 * 1000,
-            path:"/"
+            path: "/"
         })
+        postHog.identify({
+            distinctId: validUser.id, // unique ID from your database
+            properties: {
+                email: validUser.email,
+                plan: validUser.plan || "free",
+            },
+        });
+        postHog.capture({
+            distinctId: validUser.id,
+            event: "login_success",
+        });
+
+        await postHog.flush();
+
         res.status(200).json({
             success: true,
             message: "Signed in successfully",
@@ -169,6 +209,15 @@ export const signInUser = async (
             },
         });
     } catch (error) {
+        postHog.capture({
+            distinctId: req.body.email || "unknown_user",
+            event: "login_failed",
+            properties: {
+                reason: "server_error",
+            },
+        });
+        
+        await postHog.flush();
         console.log(error);
         next(errorHandler(500, "Error occured while signing in"));
     }
@@ -176,13 +225,13 @@ export const signInUser = async (
 
 export const logOutUser = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
-       const isProduction = process.env.NODE_ENV === "production";
+        const isProduction = process.env.NODE_ENV === "production";
         res.clearCookie("access_token", {
             httpOnly: true,
-            sameSite: isProduction ? "none": "lax",
+            sameSite: isProduction ? "none" : "lax",
             secure: isProduction,
             maxAge: 24 * 60 * 60 * 1000,
-            path:"/"
+            path: "/"
         })
         res.status(200).json({ success: true, message: "Logged out successfully" });
     } catch (error) {

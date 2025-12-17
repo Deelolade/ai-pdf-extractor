@@ -99,3 +99,7 @@ if(!RESEND_API_KEY){
     throw new Error ("RESEND_API_KEY is not defined in .env")
 }
 
+export const POSTHOG_API_KEY = process.env.POSTHOG_API_KEY as string;
+if(!POSTHOG_API_KEY){
+    throw new Error ("POSTHOG_API_KEY is not defined in .env")
+}

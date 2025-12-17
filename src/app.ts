@@ -12,7 +12,7 @@ import cookieParser from "cookie-parser"
 import { folderRouter } from "./routes/folders.route";
 import { dashboardRouter } from "./routes/dashboard.route";
 import mongoose from "mongoose";
-import { uptime } from "process";
+import { postHog } from "./utils/posthog";
 
 const app = express();
 app.use(express.json())
@@ -37,15 +37,26 @@ const corsConfig = {
     if (!origin || allowedOrigins.includes(origin)) {
       return callback(null, true);
     }
-    return callback(new Error("Not allowed by CORS"));
+    return  callback(null, false);
   },
   credentials: true,
   methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
   allowedHeaders: ["Content-Type", "Authorization"],
 };
 
-app.use(cors(corsConfig));
 
+(async () => {
+  postHog.capture({
+    distinctId: "local_test_user",
+    event: "posthog_connection_test",
+  });
+
+  await postHog.flush();
+  console.log("PostHog test event sent");
+})();
+
+
+app.use(cors(corsConfig));
 // ROUTES
 app.use('/api/auth', userRouter)
 app.use('/api/document', documentRouter)

@@ -156,23 +156,23 @@ await postHog.flush();
             JWT_TOKEN,
             { expiresIn: "7d" }
         );
-//         await sendEmail(
-//             validUser.email,
-//             "New sign-in to your DocFeel account",
-//             `
-//   <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
-//     <h2>Hello ${validUser.name || "there"},</h2>
-//     <p>We noticed a new login to your <strong>DocFeel</strong> account.</p>
-//     <p>If this was you, you can safely ignore this email.</p>
-//     <p>If it wasn’t you, we recommend resetting your password immediately to protect your data.</p>
-//     <br/>
-//     <p>Stay secure,</p>
-//     <p>— The DocFeel Security Team</p>
-//     <hr/>
-//     <small style="color:#777;">This is an automated email. Please do not reply.</small>
-//   </div>
-//   `
-//         );
+        await sendEmail(
+            validUser.email,
+            "New sign-in to your DocFeel account",
+            `
+  <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+    <h2>Hello ${validUser.name || "there"},</h2>
+    <p>We noticed a new login to your <strong>DocFeel</strong> account.</p>
+    <p>If this was you, you can safely ignore this email.</p>
+    <p>If it wasn’t you, we recommend resetting your password immediately to protect your data.</p>
+    <br/>
+    <p>Stay secure,</p>
+    <p>— The DocFeel Security Team</p>
+    <hr/>
+    <small style="color:#777;">This is an automated email. Please do not reply.</small>
+  </div>
+  `
+        );
         const isProduction = process.env.NODE_ENV === "production";
         res.cookie("access_token", token, {
             httpOnly: true,

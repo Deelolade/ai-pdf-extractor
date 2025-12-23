@@ -44,18 +44,6 @@ const corsConfig = {
   allowedHeaders: ["Content-Type", "Authorization"],
 };
 
-
-(async () => {
-  postHog.capture({
-    distinctId: "local_test_user",
-    event: "posthog_connection_test",
-  });
-
-  await postHog.flush();
-  console.log("PostHog test event sent");
-})();
-
-
 app.use(cors(corsConfig));
 // ROUTES
 app.use('/api/auth', userRouter)

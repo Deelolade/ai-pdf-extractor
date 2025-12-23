@@ -24,8 +24,7 @@ export const converseWithLLM = async (req: Request, res: Response, next: NextFun
         const { documentId } = req.params;
         const { message } = req.body;
         const userId = req.user?.id;
-        console.log(userId)
-        console.log(documentId, message)
+        
         if (!message || !documentId) {
             return next(errorHandler(400, "Message and Document id are required"))
         }
@@ -62,7 +61,7 @@ ${upload.textExtracted}
                 { role: "system", content: systemPrompt },
                 { role: "user", content: message }
             ],
-            max_tokens: 2000
+            max_tokens: 500
         });
         const aiReply = completion.choices[0].message?.content || "No response from LLM";
 
@@ -96,7 +95,7 @@ ${upload.textExtracted}
         res.status(200).json({
             success: true,
             message: "Response generated successfully",
-            chat,
+            // chat,
             reply:aiReply
         })
     } catch (error) {

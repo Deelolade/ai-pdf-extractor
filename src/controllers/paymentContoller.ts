@@ -10,7 +10,7 @@ dotenv.config();
 
 export const initiateFlutterwavePayment = async (req: Request, res: Response, next: NextFunction): Promise<any> => {
   try {
-    const { amount , phone_number } = req.body;
+    const { amount, phone_number } = req.body;
     if (!amount || !phone_number) {
       return next(errorHandler(400, "Amount and phone number are required"))
     }
@@ -54,9 +54,32 @@ export const initiateFlutterwavePayment = async (req: Request, res: Response, ne
   }
 };
 
-export const verifyPayment = async (req: Request, res: Response) => {
-  const { tx_ref } = req.params;
+export const verifyPayment = async (req: Request, res: Response, next: NextFunction): Promise<any> => {
+  const { tx_ref, transaction_id } = req.query;
+  try {
+    if (!tx_ref || !transaction_id) {
+      return next(errorHandler(400, "tx_ref and transaction_id are required"))
+    }
 
-  res.send("Payment verified successfully");
-  console.log(tx_ref)
+    const response = await axios.get(`https://api.flutterwave.com/v3/transactions/${transaction_id}/verify`, {
+      headers: {
+        Authorization: `Bearer ${FLW_SECRET_KEY}`,
+        "Content-Type": "application/json"
+      }
+    })
+    console.log("Flutterwave payment verification response:", response.data);
+    if(response.data.status === 'success' && response.data.data.status === 'successful') {
+      // Payment successful, update user subscription or access here
+
+      return res.status(200).json({
+        success: true,
+        message: "Payment verified successfully",
+        data: response.data.data
+      })
+    }
+  } catch (error) {
+    next(errorHandler(500, "Failed to verify payment"))
+  }
+
+
 }

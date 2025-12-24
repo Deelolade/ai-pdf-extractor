@@ -1,6 +1,6 @@
 import mongoose, { Document, model, Schema } from "mongoose";
 
-enum PaymentStatus{
+export enum PaymentStatus{
     PENDING= 'pending',
     SUCCESSFUL= 'successful',
     FAILED= 'failed'

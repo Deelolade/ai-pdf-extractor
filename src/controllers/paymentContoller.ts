@@ -5,7 +5,7 @@ import { errorHandler } from "../utils/errorHandler";
 import { User } from "../models/user.model";
 import { flw } from "../utils/flutterwave";
 import { FLW_SECRET_KEY } from "../utils/env";
-import { Payment } from "../models/payment.model";
+import { Payment, PaymentStatus } from "../models/payment.model";
 
 dotenv.config();
 
@@ -46,11 +46,11 @@ export const initiateFlutterwavePayment = async (req: Request, res: Response, ne
     })
     console.log("Flutterwave payment initiation response:", response.data);
 
-    Payment.create({
+    await Payment.create({
       userId: user._id,
       amount,
       tx_ref,
-      status: 'pending'
+      status: PaymentStatus.PENDING
     })
     res.status(200).json({
       success: true,
@@ -72,6 +72,18 @@ export const verifyPayment = async (req: Request, res: Response, next: NextFunct
     if (!tx_ref || !transaction_id) {
       return next(errorHandler(400, "tx_ref and transaction_id are required"))
     }
+    const payment = await Payment.findOne({ tx_ref, userId: user._id });
+
+    if (!payment) {
+      return next(errorHandler(404, "Payment record not found"));
+    }
+
+    if (payment?.status === "successful") {
+      return res.status(200).json({
+        success: true,
+        message: "Payment already verified",
+      })
+    };
 
     const response = await axios.get(`https://api.flutterwave.com/v3/transactions/${transaction_id}/verify`, {
       headers: {
@@ -80,21 +92,28 @@ export const verifyPayment = async (req: Request, res: Response, next: NextFunct
       }
     })
     console.log("Flutterwave payment verification response:", response.data);
-    if (response.data.status === 'success' && response.data.data.status === 'successful') {
-      // Payment successful, update user subscription or access here
+    if (response.data.status !== 'success' || response.data.data.status !== 'successful') {
+      await Payment.findOneAndUpdate({ tx_ref }, { status: PaymentStatus.FAILED });
+      return next(errorHandler(400, "Payment verification failed"))
 
-      await Payment.findOneAndUpdate({ tx_ref }, { status: "successful" });
-      await User.findByIdAndUpdate(user._id, {isPaidUser: true, trialCount: 50})
-
-      return res.status(200).json({
-        success: true,
-        message: "Payment verified successfully",
-        data: response.data.data
-      })
     }
+    if (response.data.data.tx_ref !== tx_ref) {
+      return next(errorHandler(400, "Transaction reference mismatch"));
+    }
+
+    if (Number(response.data.data.amount) !== Number(payment.amount)) {
+      return next(errorHandler(400, "Payment amount mismatch"));
+    }
+    await Payment.findOneAndUpdate({ tx_ref }, { status: PaymentStatus.SUCCESSFUL });
+    await User.findByIdAndUpdate(user._id, { isPaidUser: true, plan: 'premium', $inc: { credits: 50 }, });
+
+    return res.status(200).json({
+      success: true,
+      message: "Payment verified successfully",
+      data: response.data.data
+    })
+
   } catch (error) {
     next(errorHandler(500, "Failed to verify payment"))
   }
-
-
 }

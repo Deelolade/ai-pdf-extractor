@@ -1,54 +1,62 @@
-import { Request, Response } from "express";
+import { NextFunction, Request, Response } from "express";
 import axios from "axios";
 import dotenv from "dotenv";
+import { errorHandler } from "../utils/errorHandler";
+import { User } from "../models/user.model";
+import { flw } from "../utils/flutterwave";
+import { FLW_SECRET_KEY } from "../utils/env";
 
 dotenv.config();
 
-export const initiateFlutterwavePayment = async (req: Request, res: Response) => {
+export const initiateFlutterwavePayment = async (req: Request, res: Response, next: NextFunction): Promise<any> => {
   try {
-    const { amount, email, name, phone } = req.body;
-
-    const payload = {
-      tx_ref: "tx-" + Date.now(),
+    const { amount , phone_number } = req.body;
+    if (!amount || !phone_number) {
+      return next(errorHandler(400, "Amount and phone number are required"))
+    }
+    const user = await User.findById(req.user?.id);
+    if (!user) {
+      return next(errorHandler(404, "User not found"))
+    }
+    const tx_ref = `tx-DocFeel-${Date.now()}`;
+    const paymentPayload = {
+      tx_ref,
       amount,
-      currency: "NGN",
-      redirect_url: "https://b8208fe24eee.ngrok-free.app/verify-payment",
-      payment_options: "card, banktransfer, ussd, qr, mobilemoney, opay",
+      currency: 'NGN',
+      redirect_url: 'https://docfeel.com/verify-payment',
+      payment_options: "card,banktransfer,ussd,qr,mobilemoney,opay",
       customer: {
-        email,
-        phonenumber: phone,
-        name,
+        email: user.email,
+        phonenumber: phone_number,
+        name: user.name
       },
       customizations: {
-        title: "My Store",
-        description: "Payment for items in cart",
-      },
-    };
-
-    const response = await axios.post(
-      "https://api.flutterwave.com/v3/payments",
-      payload,
-      {
-        headers: {
-          Authorization: `Bearer ${process.env.FLW_SECRET_KEY}`,
-          "Content-Type": "application/json",
-        },
+        title: 'DocFeel Payment',
+        description: 'Payment for DocFeel services',
       }
-    );
+    }
 
-    // The Flutterwave checkout link
-    const paymentLink = response.data.data.link;
-
-    res.json({ paymentLink });
-  } catch (error: any) {
-    console.error("Error initiating payment:", error.response?.data || error.message);
-    res.status(500).json({ error: error.response?.data || error.message });
+    console.log("Initiating Flutterwave payment with payload:", paymentPayload);
+    const response = await axios.post("https://api.flutterwave.com/v3/payments", paymentPayload, {
+      headers: {
+        Authorization: `Bearer ${FLW_SECRET_KEY}`,
+        "Content-Type": "application/json"
+      }
+    })
+    console.log("Flutterwave payment initiation response:", response.data);
+    res.status(200).json({
+      success: true,
+      link: response.data.data.link,
+      tx_ref
+    })
+  } catch (error) {
+    next(errorHandler(500, "Failed to initiate payment"))
   }
 };
 
-export const  verifyPayment = async (req: Request, res: Response) => {
-    const { tx_ref } = req.params;
+export const verifyPayment = async (req: Request, res: Response) => {
+  const { tx_ref } = req.params;
 
-    res.send("Payment verified successfully");
-    console.log(tx_ref)
+  res.send("Payment verified successfully");
+  console.log(tx_ref)
 }

@@ -5,4 +5,4 @@ import { authenticateUser } from "../middleware/authMiddleware";
 export const paymentRouter = express.Router();
 
 paymentRouter.post('/initiate', authenticateUser, initiateFlutterwavePayment);
-paymentRouter.get('/verify-payment', verifyPayment);
+paymentRouter.get('/verify-payment', authenticateUser, verifyPayment);

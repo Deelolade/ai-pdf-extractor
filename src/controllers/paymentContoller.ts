@@ -5,6 +5,7 @@ import { errorHandler } from "../utils/errorHandler";
 import { User } from "../models/user.model";
 import { flw } from "../utils/flutterwave";
 import { FLW_SECRET_KEY } from "../utils/env";
+import { Payment } from "../models/payment.model";
 
 dotenv.config();
 
@@ -44,6 +45,13 @@ export const initiateFlutterwavePayment = async (req: Request, res: Response, ne
       }
     })
     console.log("Flutterwave payment initiation response:", response.data);
+
+    Payment.create({
+      userId: user._id,
+      amount,
+      tx_ref,
+      status: 'pending'
+    })
     res.status(200).json({
       success: true,
       link: response.data.data.link,
@@ -56,6 +64,10 @@ export const initiateFlutterwavePayment = async (req: Request, res: Response, ne
 
 export const verifyPayment = async (req: Request, res: Response, next: NextFunction): Promise<any> => {
   const { tx_ref, transaction_id } = req.query;
+  const user = await User.findById(req.user?.id);
+  if (!user) {
+    return next(errorHandler(404, "User not found"))
+  }
   try {
     if (!tx_ref || !transaction_id) {
       return next(errorHandler(400, "tx_ref and transaction_id are required"))
@@ -68,8 +80,11 @@ export const verifyPayment = async (req: Request, res: Response, next: NextFunct
       }
     })
     console.log("Flutterwave payment verification response:", response.data);
-    if(response.data.status === 'success' && response.data.data.status === 'successful') {
+    if (response.data.status === 'success' && response.data.data.status === 'successful') {
       // Payment successful, update user subscription or access here
+
+      await Payment.findOneAndUpdate({ tx_ref }, { status: "successful" });
+      await User.findByIdAndUpdate(user._id, {isPaidUser: true, trialCount: 50})
 
       return res.status(200).json({
         success: true,

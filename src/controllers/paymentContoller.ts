@@ -117,3 +117,48 @@ export const verifyPayment = async (req: Request, res: Response, next: NextFunct
     next(errorHandler(500, "Failed to verify payment"))
   }
 }
+
+export const flutterwaveWebhookHandler = async (req: Request, res: Response, next: NextFunction): Promise<any> => {
+  console.log("Webhook received:", req.body);
+  res.status(200).json({ success: true });
+  try {
+    const event = req.body.event;
+    const data = req.body.data;
+
+    const signature = req.headers["verif-hash"];
+    if (signature !== process.env.FLW_WEBHOOK_SECRET) {
+      return res.status(403).json({ success: false, message: "Invalid signature" });
+    }
+
+    if (event === 'charge.completed') {
+      const { tx_ref, status, amount } = data;
+
+      const payment = await Payment.findOne({ tx_ref });
+      if (!payment) {
+        return next(errorHandler(404, "Payment record not found"));
+      }
+      if (payment.status === PaymentStatus.SUCCESSFUL) {
+        return res.status(200).json({ success: true, message: "Payment already processed" });
+      }
+      let paymentStatus = PaymentStatus.FAILED;
+      if (status === "successful") {
+        paymentStatus = PaymentStatus.SUCCESSFUL;
+      }
+      await Payment.findOneAndUpdate({ tx_ref }, { status: paymentStatus });
+
+      if (paymentStatus === PaymentStatus.SUCCESSFUL) {
+        await User.findByIdAndUpdate(payment.userId, {
+          isPaidUser: true,
+          plan: 'premium',
+          $inc: { credits: 50 },
+        });
+        return res.status(200).json({
+          success: true, message: "Payment processed successfully"
+        })
+      }
+    }
+    return res.status(200).json({ success: true, message: "Event ignored" });
+  } catch (error) {
+    next(error)
+  }
+}

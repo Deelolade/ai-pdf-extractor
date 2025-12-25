@@ -10,6 +10,8 @@ export interface PaymentDocument extends Document{
     amount: number;
     tx_ref: string;
     status: PaymentStatus;
+    phoneNumber?: string;
+    currency?: string;
     createdAt: Date;
     updatedAt: Date;
 }
@@ -26,13 +28,20 @@ const paymentSchema = new Schema<PaymentDocument>({
     tx_ref: {
         type: String,
         required: true,
-        unique: true
+        unique: true,
+        index: true
     },
     status:{
         default: PaymentStatus.PENDING,
         type: String,
         required: true,
         enum: ['pending', 'successful', 'failed']
+    },
+    phoneNumber:{
+        type: String,
+    },
+    currency:{
+        type: String,
     }
 }, { timestamps: true })
 export const Payment = model<PaymentDocument>('payment', paymentSchema);

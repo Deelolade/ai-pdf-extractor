@@ -103,3 +103,9 @@ export const POSTHOG_API_KEY = process.env.POSTHOG_API_KEY as string;
 if(!POSTHOG_API_KEY){
     throw new Error ("POSTHOG_API_KEY is not defined in .env")
 }
+
+export const FLW_WEBHOOK_SECRET = process.env.FLW_WEBHOOK_SECRET as string;
+if(!FLW_WEBHOOK_SECRET){
+    throw new Error ("FLW_WEBHOOK_SECRET is not defined in .env")
+}
+

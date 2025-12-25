@@ -6,4 +6,4 @@ export const paymentRouter = express.Router();
 
 paymentRouter.post('/initiate', authenticateUser, initiateFlutterwavePayment);
 paymentRouter.get('/verify-payment', authenticateUser, verifyPayment);
-paymentRouter.post('webhooks/flutterwave', flutterwaveWebhookHandler)
+paymentRouter.post('/webhooks/flutterwave', flutterwaveWebhookHandler)

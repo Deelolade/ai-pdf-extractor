@@ -4,7 +4,7 @@ import dotenv from "dotenv";
 import { errorHandler } from "../utils/errorHandler";
 import { User } from "../models/user.model";
 import { flw } from "../utils/flutterwave";
-import { FLW_SECRET_KEY } from "../utils/env";
+import { FLW_SECRET_KEY, FLW_WEBHOOK_SECRET } from "../utils/env";
 import { Payment, PaymentStatus } from "../models/payment.model";
 
 dotenv.config();
@@ -24,7 +24,7 @@ export const initiateFlutterwavePayment = async (req: Request, res: Response, ne
       tx_ref,
       amount,
       currency: 'NGN',
-      redirect_url: 'https://docfeel.com/verify-payment',
+      redirect_url: 'https://docfeel.com/dashboard',
       payment_options: "card,banktransfer,ussd,qr,mobilemoney,opay",
       customer: {
         email: user.email,
@@ -50,7 +50,9 @@ export const initiateFlutterwavePayment = async (req: Request, res: Response, ne
       userId: user._id,
       amount,
       tx_ref,
-      status: PaymentStatus.PENDING
+      status: PaymentStatus.PENDING,
+      phoneNumber: phone_number,
+      currency: "NGN"
     })
     res.status(200).json({
       success: true,
@@ -120,45 +122,60 @@ export const verifyPayment = async (req: Request, res: Response, next: NextFunct
 
 export const flutterwaveWebhookHandler = async (req: Request, res: Response, next: NextFunction): Promise<any> => {
   console.log("Webhook received:", req.body);
-  res.status(200).json({ success: true });
+  const signature = req.headers["verif-hash"] as string | undefined;
+  console.log('signature:', signature);
+  if (signature !== FLW_WEBHOOK_SECRET) {
+    return res.status(403).json({ success: false, message: "Invalid signature" });
+  }
+  
   try {
-    const event = req.body.event;
-    const data = req.body.data;
+    // const event = req.body.event;
+    // const data = req.body.data;
 
-    const signature = req.headers["verif-hash"];
-    if (signature !== process.env.FLW_WEBHOOK_SECRET) {
-      return res.status(403).json({ success: false, message: "Invalid signature" });
+    // console.log("event:", event);
+    // console.log("data:", data);
+    
+
+    // const { tx_ref, status, amount } = data;
+
+    const amount = req.body.amount;
+    const tx_ref = req.body.txRef;
+    const status = req.body.status;
+
+    // const event = req.body['event.type'];
+    // if (event !== 'charge.completed') {
+    //   return res.status(200).json({ success: true });
+    // }
+
+    const payment = await Payment.findOne({ tx_ref });
+    if (!payment) {
+      console.log("Payment not found:", tx_ref);
+      return res.status(200).json({ success: true });
+    }
+    if (Number(amount) !== Number(payment.amount)) {
+      console.log("Amount mismatch:", amount, payment.amount);
+      return res.status(200).json({ success: true });
     }
 
-    if (event === 'charge.completed') {
-      const { tx_ref, status, amount } = data;
-
-      const payment = await Payment.findOne({ tx_ref });
-      if (!payment) {
-        return next(errorHandler(404, "Payment record not found"));
-      }
-      if (payment.status === PaymentStatus.SUCCESSFUL) {
-        return res.status(200).json({ success: true, message: "Payment already processed" });
-      }
-      let paymentStatus = PaymentStatus.FAILED;
-      if (status === "successful") {
-        paymentStatus = PaymentStatus.SUCCESSFUL;
-      }
-      await Payment.findOneAndUpdate({ tx_ref }, { status: paymentStatus });
-
-      if (paymentStatus === PaymentStatus.SUCCESSFUL) {
-        await User.findByIdAndUpdate(payment.userId, {
-          isPaidUser: true,
-          plan: 'premium',
-          $inc: { credits: 50 },
-        });
-        return res.status(200).json({
-          success: true, message: "Payment processed successfully"
-        })
-      }
+    
+    if (payment.status === PaymentStatus.SUCCESSFUL) {
+      return res.status(200).json({ success: true });
     }
-    return res.status(200).json({ success: true, message: "Event ignored" });
+
+    const paymentStatus = status === "successful" ? PaymentStatus.SUCCESSFUL : PaymentStatus.FAILED;
+
+    await Payment.findOneAndUpdate({ tx_ref, status: { $ne: PaymentStatus.SUCCESSFUL } }, { status: paymentStatus });
+
+    if (paymentStatus === PaymentStatus.SUCCESSFUL) {
+      await User.findByIdAndUpdate(payment.userId, {
+        isPaidUser: true,
+        plan: 'premium',
+        $inc: { credits: 50 },
+      });
+    }
+    return res.status(200).json({ success: true });
   } catch (error) {
-    next(error)
+    console.error("Webhook error:", error);
+    return res.status(200).json({ success: true });
   }
 }

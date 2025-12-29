@@ -17,28 +17,24 @@ export const checkSubscription = async (req: Request, res: Response, next: NextF
             return next(errorHandler(404, "User not found"));
         }
 
+        // TRIAL USER
         if (!user.isPaidUser) {
-            // TRIAL USER
             if (user.trialCount >= MAX_TRIALS) {
                 return next(errorHandler(403, "Trial limit reached. Please upgrade to a paid account."));
             }
         } 
+        // PAID USER
         else {
-            // PAID USER
             if (!user.subscriptionEndDate || user.subscriptionEndDate < now) {
-                user.isPaidUser = false;
-                user.plan = userPlan.FREE;
-                await user.save();
-                return next(errorHandler(403, "Your subscription has expired. Please renew to continue."));
+                return next(errorHandler(403, "Subscription has expired. Please renew your subscription."));
             }
-
-            const currentCredits = user.credits ?? 0 
-            if(currentCredits <= 0){
-                return next(errorHandler(403, "Insufficient credits. Please top up your account."));
+            if (user.credits <= 0) {
+                return next(errorHandler(403, "Insufficient credits. Please purchase more credits to continue."));
+            } else {
+                if( user.trialCount >= MAX_TRIALS){
+                    return next(errorHandler(403, "Trial limit reached. Please upgrade to a paid account."));
+                }
             }
-
-            user.credits = currentCredits - 1 ;
-            await user.save();
         }
         req.user = user;
         next();

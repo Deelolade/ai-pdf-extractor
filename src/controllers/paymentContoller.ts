@@ -2,7 +2,7 @@ import { NextFunction, Request, Response } from "express";
 import axios from "axios";
 import dotenv from "dotenv";
 import { errorHandler } from "../utils/errorHandler";
-import { User } from "../models/user.model";
+import { User, userPlan } from "../models/user.model";
 import { flw } from "../utils/flutterwave";
 import { FLW_SECRET_KEY, FLW_WEBHOOK_SECRET, FRONTEND_URL } from "../utils/env";
 import { Payment, PaymentStatus } from "../models/payment.model";
@@ -107,7 +107,7 @@ export const verifyPayment = async (req: Request, res: Response, next: NextFunct
       return next(errorHandler(400, "Payment amount mismatch"));
     }
     await Payment.findOneAndUpdate({ tx_ref }, { status: PaymentStatus.SUCCESSFUL });
-    await User.findByIdAndUpdate(user._id, { isPaidUser: true, plan: 'premium', $inc: { credits: 50 }, });
+    await User.findByIdAndUpdate(user._id, { isPaidUser: true, plan: userPlan.MONTHLY, $inc: { credits: 100 }, });
 
     return res.status(200).json({
       success: true,
@@ -152,8 +152,8 @@ export const flutterwaveWebhookHandler = async (req: Request, res: Response, nex
     if (paymentStatus === PaymentStatus.SUCCESSFUL) {
       await User.findByIdAndUpdate(payment.userId, {
         isPaidUser: true,
-        plan: 'premium',
-        $inc: { credits: 50 },
+        plan: userPlan.MONTHLY,
+        $inc: { credits: 100 },
       });
     }
     return res.status(200).json({ success: true });

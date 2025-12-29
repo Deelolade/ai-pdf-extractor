@@ -112,7 +112,7 @@ export const summarizePdf = async (req: Request, res: Response, next: NextFuncti
     // INCREASE USER TRIAL COUNT FOR FREE USERS 
     if (!user.isPaidUser) {
       user.trialCount += 1;
-      
+
       // generate 3 summaries before deducting trialCount
       if(user.trialCount % 3 === 0){
         user.trialCount += 1; // BONUS TRIAL
@@ -125,7 +125,7 @@ export const summarizePdf = async (req: Request, res: Response, next: NextFuncti
     }
     res.status(200).json({
       message: "Document summarized successfully",
-      summary,
+      document:uploadRecord,
     });
   } catch (error) {
     next(errorHandler(500, "failed to summarize Document"))
@@ -181,7 +181,6 @@ export const updateDocument = async (req: Request, res: Response, next: NextFunc
     const { fileName } = req.body
     const { id } = req.params;
     const userId = req.user?.id;
-    // console.log(req.params)
     if (!id) {
       return next(errorHandler(400, "Upload id is required"))
     }

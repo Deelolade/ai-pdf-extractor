@@ -24,10 +24,10 @@ export const checkSubscription = async (req: Request, res: Response, next: NextF
             }
         } 
         // PAID USER
-        else {
-            if (!user.subscriptionEndDate || user.subscriptionEndDate < now) {
-                return next(errorHandler(403, "Subscription has expired. Please renew your subscription."));
-            }
+        if(user.isPaidUser) {
+            // if (!user.subscriptionEndDate || user.subscriptionEndDate < now) {
+            //     return next(errorHandler(403, "Subscription has expired. Please renew your subscription."));
+            // }
             if (user.credits <= 0) {
                 return next(errorHandler(403, "Insufficient credits. Please purchase more credits to continue."));
             } else {

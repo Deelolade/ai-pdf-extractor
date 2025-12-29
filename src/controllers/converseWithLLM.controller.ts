@@ -36,19 +36,16 @@ export const converseWithLLM = async (req: Request, res: Response, next: NextFun
         if (!user) {
             return next(errorHandler(404, "User not found"));
         }
-        // if (!user.isPaidUser) {
-        //     if (user.trialCount >= MAX_TRIALS) {
-        //         return next(errorHandler(403, "Trial limit reached. Please upgrade to a paid account."));
-        //     }
 
-        //     user.trialCount += 1;
-        //     await user.save()
-
-        //     console.log("isPaidUser:", user.isPaidUser, "trialCount:", user.trialCount);
-        // }
+        if (!user.isPaidUser) {
+            if (user.trialCount >= MAX_TRIALS) {
+                return next(errorHandler(403, "Trial limit reached. Please upgrade to a paid account."));
+            }
+        }
         if (user.isPaidUser) {
-            user.credits -= 1;
-            await user.save();
+            if (user.credits <= 0) {
+                return next(errorHandler(403, "Insufficient credits. Please purchase more credits to continue."));
+            }
         }
 
         const systemPrompt = `
@@ -96,6 +93,17 @@ ${upload.textExtracted}
             })
 
         }
+        if (!user.isPaidUser) {
+            if (user.trialCount % 3 === 0) {
+                user.trialCount += 1;
+                await user.save()
+            }
+        }
+        if (user.isPaidUser) {
+            user.credits -= 1;
+            await user.save();
+        }
+
         res.status(200).json({
             success: true,
             message: "Response generated successfully",

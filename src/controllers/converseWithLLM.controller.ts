@@ -24,11 +24,11 @@ export const converseWithLLM = async (req: Request, res: Response, next: NextFun
         const { documentId } = req.params;
         const { message } = req.body;
         const userId = req.user?.id;
-        
+
         if (!message || !documentId) {
             return next(errorHandler(400, "Message and Document id are required"))
         }
-        const upload = await Upload.findOne({ _id: documentId, userId});
+        const upload = await Upload.findOne({ _id: documentId, userId });
         if (!upload) {
             return next(errorHandler(404, "Document not found !"))
         }
@@ -46,6 +46,10 @@ export const converseWithLLM = async (req: Request, res: Response, next: NextFun
 
         //     console.log("isPaidUser:", user.isPaidUser, "trialCount:", user.trialCount);
         // }
+        if (user.isPaidUser) {
+            user.credits -= 1;
+            await user.save();
+        }
 
         const systemPrompt = `
 You are a helpful assistant. 
@@ -69,34 +73,34 @@ ${upload.textExtracted}
             // ...messages,
             {
                 role: Role.USER,
-                content:message,
+                content: message,
                 createdAt: new Date,
             },
             {
                 role: Role.ASSISTANT,
-                content:aiReply,
+                content: aiReply,
                 createdAt: new Date,
             }
         ]
 
-        let chat = await Chat.findOne({ userId, documentId});
+        let chat = await Chat.findOne({ userId, documentId });
 
-        if(chat){
+        if (chat) {
             chat.messages.push(...newMessages);
             await chat.save();
-        }else{
-            chat = await  Chat.create({
+        } else {
+            chat = await Chat.create({
                 userId,
                 documentId,
                 messages: newMessages
-            })  
-    
+            })
+
         }
         res.status(200).json({
             success: true,
             message: "Response generated successfully",
             // chat,
-            reply:aiReply
+            reply: aiReply
         })
     } catch (error) {
         console.log(error)
@@ -106,25 +110,25 @@ ${upload.textExtracted}
 
 export const getAllChats = async (req: Request, res: Response, next: NextFunction) => {
     try {
-    const { documentId } = req.params;
-    const userId = req.user?.id
-    if(!documentId){
-        return  next(errorHandler(400, 'Document Id is required '))
-    }
+        const { documentId } = req.params;
+        const userId = req.user?.id
+        if (!documentId) {
+            return next(errorHandler(400, 'Document Id is required '))
+        }
 
-    const previousChat = await Chat.findOne({ documentId, userId})
-    
-    if(!previousChat){
+        const previousChat = await Chat.findOne({ documentId, userId })
+
+        if (!previousChat) {
+            res.status(200).json({
+                success: true,
+                messages: [],
+                info: "No chat record found !"
+            })
+        }
         res.status(200).json({
             success: true,
-            messages: [],
-            info: "No chat record found !"
+            messages: previousChat?.messages
         })
-    }
-    res.status(200).json({
-        success: true,
-        messages: previousChat?.messages
-    })
     } catch (error) {
         next(errorHandler(500, 'Unable to get previous conversations !!'))
     }

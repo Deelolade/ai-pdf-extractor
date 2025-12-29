@@ -23,13 +23,17 @@ export const uploadPdf = async (req: RequestWithFile, res: Response, next: NextF
     if (!user) {
       return next(errorHandler(404, "User not found"));
     }
-    // IF USER IS A PAID USER
     if (!user.isPaidUser) {
       if (user.trialCount >= MAX_TRIALS) {
         return next(errorHandler(403, "Trial limit reached. Please upgrade to a paid account."));
       }
     }
-
+    // IF USER IS A PAID USER
+    if(user.isPaidUser){
+      if(user.credits <= 0){
+        return next(errorHandler(403, "Insufficient credits. Please purchase more credits to continue."));
+      }
+    }
     // EXTRACT AND UPLOAD DOCUMENTS TO CLOUDFLARE
     const { buffer, originalname, mimetype } = req.file;
     const fileUrl = await uploadToR2(buffer, originalname, mimetype);
@@ -46,9 +50,15 @@ export const uploadPdf = async (req: RequestWithFile, res: Response, next: NextF
     });
     await uploadText.save();
 
+
+    if(user.isPaidUser){
+      user.credits -= 5; // reduce credits by 5 for paid users
+      await user.save();
+    }
+
     // INCREASE USER TRIAL COUNT FOR FREE USERS 
     if (!user.isPaidUser) {
-      user.trialCount += 1;
+      user.trialCount += 1; // increase trial count by 1 for free users
       await user.save()
     }
     res.status(200).json({
@@ -86,6 +96,11 @@ export const summarizePdf = async (req: Request, res: Response, next: NextFuncti
         return next(errorHandler(403, "Trial limit reached. Please upgrade to a paid account."));
       }
     }
+    if(user.isPaidUser){
+      if(user.credits <= 0){
+        return next(errorHandler(403, "Insufficient credits. Please purchase more credits to continue."));
+      }
+    }
     const summary = await summarizeFullPdf(uploadRecord.textExtracted);
     if (!summary) {
       return next(errorHandler(500, "Failed to generate summary"));
@@ -97,7 +112,16 @@ export const summarizePdf = async (req: Request, res: Response, next: NextFuncti
     // INCREASE USER TRIAL COUNT FOR FREE USERS 
     if (!user.isPaidUser) {
       user.trialCount += 1;
+      
+      // generate 3 summaries before deducting trialCount
+      if(user.trialCount % 3 === 0){
+        user.trialCount += 1; // BONUS TRIAL
+      }
       await user.save()
+    }
+    if(user.isPaidUser){
+      user.credits -= 1;
+      await user.save();
     }
     res.status(200).json({
       message: "Document summarized successfully",

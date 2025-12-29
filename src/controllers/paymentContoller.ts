@@ -4,7 +4,7 @@ import dotenv from "dotenv";
 import { errorHandler } from "../utils/errorHandler";
 import { User } from "../models/user.model";
 import { flw } from "../utils/flutterwave";
-import { FLW_SECRET_KEY, FLW_WEBHOOK_SECRET } from "../utils/env";
+import { FLW_SECRET_KEY, FLW_WEBHOOK_SECRET, FRONTEND_URL } from "../utils/env";
 import { Payment, PaymentStatus } from "../models/payment.model";
 
 dotenv.config();
@@ -24,7 +24,7 @@ export const initiateFlutterwavePayment = async (req: Request, res: Response, ne
       tx_ref,
       amount,
       currency: 'NGN',
-      redirect_url: 'https://docfeel.com/dashboard',
+      redirect_url: `${FRONTEND_URL}/payment/processing`,
       payment_options: "card,banktransfer,ussd,qr,mobilemoney,opay",
       customer: {
         email: user.email,
@@ -127,25 +127,11 @@ export const flutterwaveWebhookHandler = async (req: Request, res: Response, nex
   if (signature !== FLW_WEBHOOK_SECRET) {
     return res.status(403).json({ success: false, message: "Invalid signature" });
   }
-  
+
   try {
-    // const event = req.body.event;
-    // const data = req.body.data;
-
-    // console.log("event:", event);
-    // console.log("data:", data);
-    
-
-    // const { tx_ref, status, amount } = data;
-
     const amount = req.body.amount;
     const tx_ref = req.body.txRef;
     const status = req.body.status;
-
-    // const event = req.body['event.type'];
-    // if (event !== 'charge.completed') {
-    //   return res.status(200).json({ success: true });
-    // }
 
     const payment = await Payment.findOne({ tx_ref });
     if (!payment) {
@@ -156,14 +142,11 @@ export const flutterwaveWebhookHandler = async (req: Request, res: Response, nex
       console.log("Amount mismatch:", amount, payment.amount);
       return res.status(200).json({ success: true });
     }
-
-    
     if (payment.status === PaymentStatus.SUCCESSFUL) {
       return res.status(200).json({ success: true });
     }
 
     const paymentStatus = status === "successful" ? PaymentStatus.SUCCESSFUL : PaymentStatus.FAILED;
-
     await Payment.findOneAndUpdate({ tx_ref, status: { $ne: PaymentStatus.SUCCESSFUL } }, { status: paymentStatus });
 
     if (paymentStatus === PaymentStatus.SUCCESSFUL) {
@@ -177,5 +160,24 @@ export const flutterwaveWebhookHandler = async (req: Request, res: Response, nex
   } catch (error) {
     console.error("Webhook error:", error);
     return res.status(200).json({ success: true });
+  }
+}
+export const getPaymentStatus = async (req: Request, res: Response, next: NextFunction): Promise<any> => {
+  try {
+    const { tx_ref } = req.query;
+
+    if (!tx_ref) {
+      return next(errorHandler(400, "tx_ref is required"))
+    }
+    const payment = await Payment.findOne({ tx_ref });
+    if (!payment) {
+      return next(errorHandler(404, "Payment not found"))
+    }
+    return res.status(200).json({
+      success: true,
+      status: payment.status
+    })
+  } catch (error) {
+    next(errorHandler(500, "Failed to get payment status"))
   }
 }

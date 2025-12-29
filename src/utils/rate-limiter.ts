@@ -42,7 +42,7 @@ export const forgotPasswordLimiter = rateLimit({
 
 export const createUploadLimiter = rateLimit({
   windowMs: 10 * 60 * 1000,
-  limit: 5, 
+  limit: 5,
   message: "Too many upload requests. Please wait a bit before uploading again.",
   standardHeaders: true,
   legacyHeaders: false,
@@ -51,7 +51,7 @@ export const createUploadLimiter = rateLimit({
 
 export const createSummaryLimiter = rateLimit({
   windowMs: 10 * 60 * 1000,
-  limit: 10, 
+  limit: 10,
   message: "Too many create summary requests. Please try again later.",
   standardHeaders: true,
   legacyHeaders: false,
@@ -59,7 +59,7 @@ export const createSummaryLimiter = rateLimit({
 });
 export const getAllUploadsLimiter = rateLimit({
   windowMs: 10 * 60 * 1000,
-  limit: 50, 
+  limit: 50,
   message: "Too many requests. Please try again later.",
   standardHeaders: true,
   legacyHeaders: false,
@@ -67,7 +67,7 @@ export const getAllUploadsLimiter = rateLimit({
 });
 export const deleteUploadLimiter = rateLimit({
   windowMs: 10 * 60 * 1000,
-  limit: 5, 
+  limit: 5,
   message: "Too many delete requests. Please try again later.",
   standardHeaders: true,
   legacyHeaders: false,
@@ -75,7 +75,7 @@ export const deleteUploadLimiter = rateLimit({
 });
 export const converseRateLimiter = rateLimit({
   windowMs: 10 * 60 * 1000,
-  limit: 10, 
+  limit: 10,
   message: "Too many chat requests. Please try again later.",
   standardHeaders: true,
   legacyHeaders: false,
@@ -83,7 +83,7 @@ export const converseRateLimiter = rateLimit({
 });
 export const updateDocumentLimiter = rateLimit({
   windowMs: 10 * 60 * 1000,
-  limit: 5, 
+  limit: 5,
   message: "Too many update requests. Please try again later.",
   standardHeaders: true,
   legacyHeaders: false,
@@ -91,7 +91,7 @@ export const updateDocumentLimiter = rateLimit({
 });
 export const createFolderLimiter = rateLimit({
   windowMs: 10 * 60 * 1000,
-  limit: 5, 
+  limit: 5,
   message: "Too many create folder requests. Please try again later.",
   standardHeaders: true,
   legacyHeaders: false,
@@ -99,7 +99,7 @@ export const createFolderLimiter = rateLimit({
 });
 export const addDocumentToFolderLimiter = rateLimit({
   windowMs: 10 * 60 * 1000,
-  limit: 5, 
+  limit: 5,
   message: "Too many add document to folder requests. Please try again later.",
   standardHeaders: true,
   legacyHeaders: false,
@@ -107,7 +107,7 @@ export const addDocumentToFolderLimiter = rateLimit({
 });
 export const removeDocumentFromFolderLimiter = rateLimit({
   windowMs: 10 * 60 * 1000,
-  limit: 5, 
+  limit: 5,
   message: "Too many attempt to remove document from folder requests. Please try again later.",
   standardHeaders: true,
   legacyHeaders: false,
@@ -115,10 +115,21 @@ export const removeDocumentFromFolderLimiter = rateLimit({
 });
 export const getAllUserFoldersLimiter = rateLimit({
   windowMs: 10 * 60 * 1000,
-  limit: 5, 
+  limit: 5,
   message: "Too many attempt to get user document in a folder requests. Please try again later.",
   standardHeaders: true,
   legacyHeaders: false,
   ipv6Subnet: 56,
 });
 
+export const getPaymentstatusLimiter = rateLimit({
+  windowMs: 10 * 60 * 1000,
+  limit: 20,
+  message: {
+    status: "RATE_LIMITED",
+    message: "Too many status requests. Please wait."
+  },
+  standardHeaders: true,
+  legacyHeaders: false,
+  ipv6Subnet: 56,
+});

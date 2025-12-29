@@ -99,6 +99,7 @@ export const createUser = async (
                 email: newUser.email,
                 plan: newUser.plan,
                 isPaidUser: newUser.isPaidUser,
+                credits: newUser.credits,
                 trialCount: newUser.trialCount,
                 subscriptionEndDate: newUser.subscriptionEndDate,
             },
@@ -205,6 +206,7 @@ await postHog.flush();
                 plan: validUser.plan,
                 isPaidUser: validUser.isPaidUser,
                 trialCount: validUser.trialCount,
+                credits: validUser.credits,
                 subscriptionEndDate: validUser.subscriptionEndDate,
             },
         });

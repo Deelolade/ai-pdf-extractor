@@ -1,6 +1,6 @@
 
 import express from "express";
-import { totalDocumentCount } from "../controllers/document.controller";
+import {  totalDocumentCount } from "../controllers/document.controller";
 import { authenticateUser } from "../middleware/authMiddleware";
 import { totalFolderCount } from "../controllers/folders.controller";
 

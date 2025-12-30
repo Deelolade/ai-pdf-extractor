@@ -1,0 +1,12 @@
+node_modules
+
+# Build output (we copy only dist from build stage)
+dist
+
+# Environment files (if sensitive)
+.env
+
+# IDE/editor files
+.vscode
+.DS_Store
+*.swp
